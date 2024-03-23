@@ -12,9 +12,9 @@ namespace PasiveRadar
         uint cumulate_max = 10;
         uint cumulateIndex;
         uint BufferSize;
-        uint data_position = 0;//Data position in radio buffer necessary for the short display buffer
+
         FFT fft;
-        //Correlate correlate;
+
         private Thread ThreadFFT;
 
 
@@ -22,7 +22,6 @@ namespace PasiveRadar
         public Calculate()
         {
             fft = new FFT();
-            // correlate = new Correlate();
         }
 
         public void Init(uint _BufferSize, uint cumulate_max)
@@ -33,48 +32,25 @@ namespace PasiveRadar
             IntermediateBuffer = new float[BufferSize * (cumulate_max + 1)];
         }
 
-        public void Reset()
-        {
-            data_position = 0;
-        }
 
-        public uint CopyToComplex(byte[] datain, ref Complex[] DataOut, bool reset)
+
+        public uint CopyToComplex(Int16[] datain, ref Complex[] DataOut)
         {
             uint a;
-            if (DataOut.Length >= datain.Length / 2)
-                for (uint i = 0; i < datain.Length / 2 - 1; i++)
+            if (DataOut.Length < datain.Length / 2)
+                for (uint i = 0; i < DataOut.Length / 2 - 1; i++)
                 {
-                    DataOut[i].Rea = datain[a = i * 2] - 127;
-                    DataOut[i].Imag = datain[a + 1] - 127;
+                    DataOut[i].Rea = datain[a = i * 2];
+                    DataOut[i].Imag = datain[a + 1];
                 }
 
-            return data_position;
-        }
-
-        public bool CopyToComplexRadar(byte[] datain1, byte[] datain2, ref Complex[] DataOut1, ref Complex[] DataOut2, ref double[] CorrelateArray, ref uint CorrelationShift, Flags flags)//uint negative, uint positive, double Level
-        {
-            uint i2;
-            uint b;
-            uint NegPos = flags.Negative + flags.Positive;
-
-
-            for (uint i = 0; i < BufferSize / 2; i++)
-            {
-                i2 = i * 2;
-                DataOut1[i].Rea = datain1[i2] - 127;
-                DataOut1[i].Imag = datain1[b = i2 + 1] - 127;
-
-                DataOut2[i].Rea = datain2[i2] - 127;
-                DataOut2[i].Imag = datain2[b] - 127;
-            }
-
-            return true;
-
+            return 0;
         }
 
         public void FFT(Complex[] DataIn, Complex[] DataOut)
         {
             ThreadFFT = new Thread(() => ProcessFFT(DataIn, DataOut));
+            ThreadFFT.Priority = ThreadPriority.Lowest;
             ThreadFFT.Start();
 
         }
@@ -99,12 +75,10 @@ namespace PasiveRadar
                 if (ThreadCA == null)
                 {
                     ThreadCA = new Thread(() => Average(DataIn, dataout, _cumulate_max, gain));
+                    ThreadCA.Priority = ThreadPriority.Lowest;
+                    ThreadCA.Name = "Thread calculate";
+                    ThreadCA.Start();
 
-                    if (ThreadCA != null)
-                    {
-                        ThreadCA.Name = "Thread calculate";
-                        ThreadCA.Start();
-                    }
                 }
             }
         }
@@ -121,6 +95,9 @@ namespace PasiveRadar
 
         public void Average(Complex[] DataIn, double[] dataout, uint _cumulate_max, float gain)
         {
+            if (dataout == null)
+                return;
+
             if (cumulate_max != _cumulate_max)
             {
                 IntermediateBuffer = new float[BufferSize * (_cumulate_max + 1)];
@@ -184,10 +161,5 @@ namespace PasiveRadar
 
         }
 
-        public void Difference(double[] data1, double[] data2, double[] data_out)
-        {
-            for (uint i = 0; i < BufferSize; i++)
-                data_out[i] = data2[i] - data1[i];
-        }
     }
 }

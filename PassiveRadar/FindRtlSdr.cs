@@ -1,20 +1,19 @@
 ﻿using System;
-using System.Windows;
 
 namespace PasiveRadar
 {
-    public class Find
+    public class FindRtlSdr
     {
-        Dll dll;
+        Dll_RtlSdr dll;
         IntPtr dev = IntPtr.Zero;
         public int[] StatusList;
         public string[] NameList;
         public int[] List; //List stores the index of device which can be opened
         public int NrOfDevices = 0;
 
-        public Find()
+        public FindRtlSdr()
         {
-            dll = new Dll();
+            dll = new Dll_RtlSdr();
             NrOfDevices = 1;
             List = new int[32];
             NameList = new string[32];
@@ -46,12 +45,10 @@ namespace PasiveRadar
             {
                 dev = IntPtr.Zero;
                 int res = dll.open(ref dev, i);
-                //String str = "open result " + res + "poiner: " + dev;
-                //MessageBox.Show(str);
 
                 int type = dll.get_tuner_type(dev);
                 // str = "typ " + type;
-                //MessageBox.Show(str);
+                // MessageBox.Show(str);
                 if (res == 0 && (type > 0 && type < 7))
                 {
                     int test = dll.get_usb_strings(dev, ref manufact, ref product, ref serial);
@@ -59,6 +56,8 @@ namespace PasiveRadar
                     List[pos + 1] = i;
                     pos++;
                     NrOfDevices++;
+
+
 
                     dll.close(dev);
                 }

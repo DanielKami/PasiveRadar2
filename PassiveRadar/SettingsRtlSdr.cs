@@ -3,24 +3,24 @@ using System.Windows.Forms;
 
 namespace PasiveRadar
 {
-    public partial class Settings : Form
+    public partial class SettingsRtlSdr : Form
     {
         int TunerNr; //Inform for which radio the window is assigned
         public int itm;
         int[] tuner_gain_list;
 
- 
+
         int[,] stage_gains_list;
         int[] nr_of_gains_in_stage;
 
         public static object Default { get; internal set; }
 
         public delegate void MyDelegate(int Radio, int item);
-        public delegate void MyDelegateSettings(int index, int gain_index, uint rate, bool AGC, bool MGC, bool OffsetTuning, int FrequencyCorrection, int sampling, bool dithering,bool StagesFlag, int[] StageGain);
+        public delegate void MyDelegateSettings(int index, int gain_index, uint rate, bool AGC, bool MGC, bool OffsetTuning, int FrequencyCorrection, int sampling, bool dithering, bool StagesFlag, int[] StageGain);
         public static event MyDelegate EventRadio;
         public static event MyDelegateSettings EventGain;
 
-        public Settings(int _TunerNr)
+        public SettingsRtlSdr(int _TunerNr)
         {
             InitializeComponent();
             TunerNr = _TunerNr;
@@ -37,19 +37,20 @@ namespace PasiveRadar
 
         }
 
-        public void SetSettings(Radio radio)
+        public void SetSettings(RadioRtlSdr radio)
         {
             //Rate
             if (radio == null) return;
             uint rate = radio.rate;
 
             //RF gain
-            trackBar1.Maximum = radio.Number_of_gains - 1;
+            trackBar1.Maximum = radio.Number_of_gains;
+
             for (int i = 0; i < radio.Number_of_gains; i++)
                 tuner_gain_list[i] = radio.tuner_gain_list[i];
             trackBar1.Value = trackBar1.Maximum;
-            if (trackBar1.Maximum>0)
-            label1.Text = "" + 0.1 * tuner_gain_list[trackBar1.Maximum] + " dB";
+            if (trackBar1.Maximum > 0)
+                label1.Text = "" + 0.1 * tuner_gain_list[trackBar1.Maximum] + " dB";
 
             //Gain stages
             trackBar2.Maximum = radio.nr_of_gains_in_stage[0] - 1;
@@ -86,7 +87,7 @@ namespace PasiveRadar
                     itm = 2;
                     break;
                 case 1400000:
-                    itm =3 ;
+                    itm = 3;
                     break;
                 case 1800000:
                     itm = 4;
@@ -130,7 +131,7 @@ namespace PasiveRadar
             this.Visible = false;
         }
 
-        public void ComboBoxRadio_Update(ref Find find)
+        public void ComboBoxRadio_Update(ref FindRtlSdr find)
         {
             comboBox1.Items.Clear();
 
@@ -226,7 +227,6 @@ namespace PasiveRadar
                     break;
             }
 
-
             bool AGC = checkBox1.Checked;
             bool MGC = checkBox2.Checked;
             bool ShiftOn = checkBox3.Checked;
@@ -255,8 +255,8 @@ namespace PasiveRadar
                 trackBar2.Enabled = false;
                 trackBar3.Enabled = false;
                 trackBar4.Enabled = false;
-
             }
+
 
             if (ShiftOn)
                 numericUpDown1.Enabled = true;
@@ -336,6 +336,46 @@ namespace PasiveRadar
         private void checkBox5_CheckedChanged(object sender, EventArgs e)
         {
             SendSettings();
+        }
+
+        private void label10_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label9_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label8_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label7_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label6_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label5_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void SettingsRtlSdr_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

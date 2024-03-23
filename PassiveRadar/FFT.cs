@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Threading.Tasks;
 
 
 namespace PasiveRadar
 {
     public class FFT
     {
-         uint nn;
+        uint nn;
 
 
         //  public Complex[][] FactorF;
@@ -92,26 +91,26 @@ namespace PasiveRadar
             }
 
             for (i = 0; i < nn; i++)
-                Reverse[i]/=2;
+                Reverse[i] /= 2;
 
-                ////FactorF
-                //Complex Factor = new Complex(0, 0), Product = new Complex(0, 0);
+            ////FactorF
+            //Complex Factor = new Complex(0, 0), Product = new Complex(0, 0);
 
-                ////   Iteration through dyads, quadruples, octads and so on...
-                //for (uint Step = 1; Step < nn; Step <<= 1)
-                //{
-                //    //   Start value for transform factor, fi = 0
-                //    // Factor=1;
-                //    Factor.Re = 1;
-                //    Factor.Im = 0;
-                //    FactorF[Step][0] = Factor;
-                //    //   Iteration through groups of different transform factor
-                //    for (uint Group = 0; Group < Step; ++Group)
-                //    {
-                //        FactorF[Step][Group] = Factor = Multiplier[Step] * Factor + Factor;
-                //    }
-                //}
-            }
+            ////   Iteration through dyads, quadruples, octads and so on...
+            //for (uint Step = 1; Step < nn; Step <<= 1)
+            //{
+            //    //   Start value for transform factor, fi = 0
+            //    // Factor=1;
+            //    Factor.Re = 1;
+            //    Factor.Im = 0;
+            //    FactorF[Step][0] = Factor;
+            //    //   Iteration through groups of different transform factor
+            //    for (uint Group = 0; Group < Step; ++Group)
+            //    {
+            //        FactorF[Step][Group] = Factor = Multiplier[Step] * Factor + Factor;
+            //    }
+            //}
+        }
 
         ////Forward_Backward FFT calculation flag
         public void CalcFFT(Complex[] Data_In, ref Complex[] Data_Out, bool Forward_Backward = true)
@@ -164,7 +163,7 @@ namespace PasiveRadar
                 for (Group = 0; Group < Step; ++Group)
                 {
                     //Factor = FactorF[Step][Group];
-                    
+
                     //   Iteration within group 
                     for (Pair = Group; Pair < nn; Pair += Jump)
                     {

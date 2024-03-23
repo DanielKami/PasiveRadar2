@@ -24,9 +24,10 @@ namespace PasiveRadar
 
         public void FalseCheckBoxes()
         {
+            checkBox1.Checked = false;
+            checkBox2.Checked = false;
             checkBox3.Checked = false;
-            checkBox7.Checked = false;
-            checkBox8.Checked = false;
+            checkBox4.Checked = false;
 
         }
 
@@ -35,20 +36,15 @@ namespace PasiveRadar
             SET = false;
             LocalFlags = new Flags();
 
+            for (int ix = 0; ix < Flags.ALL_DONGLES; ix++)
+                LocalFlags.showRadar[ix] = flags.showRadar[ix];
 
-            LocalFlags.TwoDonglesMode = flags.TwoDonglesMode;
-            LocalFlags.showRadar = flags.showRadar;
             LocalFlags.showBackground = flags.showBackground;
-
-            LocalFlags.showCorrelateWave0 = flags.showCorrelateWave0;
-            LocalFlags.showCorrelateFlow0 = flags.showCorrelateFlow0;
-
             LocalFlags.refresh_delay = flags.refresh_delay;
             LocalFlags.ColorTheme = flags.ColorTheme;
-
             LocalFlags.Radio_buffer_size = flags.Radio_buffer_size;
 
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
+            for (int i = 0; i < Flags.ALL_DONGLES; i++)
             {
                 LocalFlags.Amplification[i] = flags.Amplification[i];
                 LocalFlags.Cumulation[i] = flags.Cumulation[i];
@@ -56,27 +52,15 @@ namespace PasiveRadar
             }
 
             //Execute
-            if (LocalFlags.TwoDonglesMode == false)
-            {
-                checkBox7.Enabled = false;
-                checkBox8.Enabled = false;
-            }
-            else
-            {
-                checkBox7.Enabled = true;
-                checkBox8.Enabled = true;
-            }
-
-            checkBox3.Checked = LocalFlags.showRadar;
-            checkBox5.Checked = LocalFlags.showBackground;
-
-            checkBox7.Checked = LocalFlags.showCorrelateWave0;
-            checkBox8.Checked = LocalFlags.showCorrelateFlow0;
+            checkBox1.Checked = LocalFlags.showRadar[0];
+            checkBox2.Checked = LocalFlags.showRadar[1];
+            checkBox3.Checked = LocalFlags.showRadar[2];
+            checkBox4.Checked = LocalFlags.showRadar[3];
 
             trackBar3.Value = LocalFlags.refresh_delay;
             label6.Text = "" + trackBar3.Value + " ms";
 
-            RadioBuffer_control.Value = LocalFlags.Radio_buffer_size;
+            RadioBuffer_control.Value = (int)LocalFlags.Radio_buffer_size;
             label2.Text = "" + LocalFlags.Radio_buffer_size;
 
             if (CustomColorsAccepted == false)
@@ -93,10 +77,10 @@ namespace PasiveRadar
 
         public void UpdateAllControls()
         {
+            checkBox1.Update();
+            checkBox2.Update();
             checkBox3.Update();
-            checkBox5.Update();
-            checkBox7.Update();
-            checkBox8.Update();
+            checkBox4.Update();
             trackBar3.Update();
             label6.Update();
             label2.Update();
@@ -111,14 +95,18 @@ namespace PasiveRadar
             if (!SET) return;
             Flags LocalFlags = new Flags();
 
-            LocalFlags.showRadar = checkBox3.Checked;
-            LocalFlags.showBackground = checkBox5.Checked;
-            LocalFlags.showCorrelateWave0 = checkBox7.Checked;
-            LocalFlags.showCorrelateFlow0 = checkBox8.Checked;
+            LocalFlags.showRadar[0] = checkBox1.Checked;
+            LocalFlags.showRadar[1] = checkBox2.Checked;
+            LocalFlags.showRadar[2] = checkBox3.Checked;
+            LocalFlags.showRadar[3] = checkBox4.Checked;
+
+
+            // LocalFlags.showBackground = checkBox5.Checked;
+
             LocalFlags.refresh_delay = trackBar3.Value;
             label6.Text = "" + trackBar3.Value + "ms";
 
-            LocalFlags.Radio_buffer_size = RadioBuffer_control.Value;
+            LocalFlags.Radio_buffer_size = (uint)RadioBuffer_control.Value;
             label2.Text = "" + RadioBuffer_control.Value;
 
             switch (comboBox1.SelectedIndex)
@@ -161,10 +149,6 @@ namespace PasiveRadar
             SendSettings();
         }
 
-        private void checkBox5_CheckedChanged(object sender, EventArgs e)
-        {
-            SendSettings();
-        }
 
         private void trackBar1_Scroll(object sender, EventArgs e)
         {
@@ -242,18 +226,22 @@ namespace PasiveRadar
 
         }
 
-        private void checkBox7_CheckedChanged(object sender, EventArgs e)
-        {
-            SendSettings();
-        }
-
-        private void checkBox8_CheckedChanged(object sender, EventArgs e)
-        {
-
-            SendSettings();
-        }
-
         private void RadioBuffer_control_Scroll(object sender, EventArgs e)
+        {
+            SendSettings();
+        }
+
+        private void checkBox1_CheckedChanged_1(object sender, EventArgs e)
+        {
+            SendSettings();
+        }
+
+        private void checkBox2_CheckedChanged_1(object sender, EventArgs e)
+        {
+            SendSettings();
+        }
+
+        private void checkBox4_CheckedChanged_1(object sender, EventArgs e)
         {
             SendSettings();
         }

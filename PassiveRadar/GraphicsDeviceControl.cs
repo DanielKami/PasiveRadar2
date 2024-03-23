@@ -8,10 +8,10 @@
 #endregion
 
 #region Using Statements
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using Microsoft.Xna.Framework.Graphics;
 
 #endregion
 
@@ -190,7 +190,7 @@ namespace PasiveRadar
                 Rectangle sourceRectangle = new Rectangle(0, 0, ClientSize.Width,
                                                                 ClientSize.Height);
 
-              //  GraphicsDevice.Present(sourceRectangle, null, this.Handle);
+                //  GraphicsDevice.Present(sourceRectangle, null, this.Handle);
             }
             catch
             {

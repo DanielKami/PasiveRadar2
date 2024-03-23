@@ -7,7 +7,7 @@
     <ProjectGuid>{A09F3646-7BAD-4C47-B736-DFD61FDF6125}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SDRdue</RootNamespace>
+    <RootNamespace>PasiveRadar</RootNamespace>
     <AssemblyName>Pasive Radar</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -100,6 +100,9 @@
   </PropertyGroup>
   <PropertyGroup />
   <ItemGroup>
+    <Reference Include="Microsoft.Maps.MapControl.WPF, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Maps.MapControl.WPF.1.0.0.3\lib\net40-Client\Microsoft.Maps.MapControl.WPF.dll</HintPath>
+    </Reference>
     <Reference Include="MonoGame.Framework, Version=3.8.0.1641, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MonoGame.Framework.WindowsDX.3.8.0.1641\lib\net452\MonoGame.Framework.dll</HintPath>
     </Reference>
@@ -150,6 +153,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambiguity.cs" />
+    <Compile Include="BiStatic.cs" />
     <Compile Include="Calculate.cs" />
     <Compile Include="ColorForm.cs">
       <SubType>Form</SubType>
@@ -159,7 +163,6 @@
     </Compile>
     <Compile Include="Complex.cs" />
     <Compile Include="Coniugate.cs" />
-    <Compile Include="Correlate.cs" />
     <Compile Include="CorrelateControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -173,13 +176,15 @@
     <Compile Include="DisplayControl.Designer.cs">
       <DependentUpon>DisplayControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="Dll.cs" />
+    <Compile Include="Dll_RtlSdr.cs" />
+    <Compile Include="DLL_RSP1.cs" />
     <Compile Include="Draw.cs" />
-    <Compile Include="DrawCorrelate.cs" />
     <Compile Include="DrawFlow.cs" />
     <Compile Include="DrawRadar.cs" />
     <Compile Include="FFT.cs" />
-    <Compile Include="Find.cs" />
+    <Compile Include="FindRtlSdr.cs" />
+    <Compile Include="Finder.cs" />
+    <Compile Include="Find_SDR1.cs" />
     <Compile Include="Flags.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
@@ -195,6 +200,13 @@
     </Compile>
     <Compile Include="GraphicsDeviceService.cs" />
     <Compile Include="Interpolate.cs" />
+    <Compile Include="Map.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Map.Designer.cs">
+      <DependentUpon>Map.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PasiveRadar\Properties\Settings.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RadarControl.cs">
@@ -203,14 +215,22 @@
     <Compile Include="RadarControl.Designer.cs">
       <DependentUpon>RadarControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="Radio.cs" />
+    <Compile Include="RadioRtlSdr.cs" />
     <Compile Include="DrawWave.cs" />
+    <Compile Include="RadioRSP1.cs" />
     <Compile Include="ServiceContainer.cs" />
-    <Compile Include="Settings1.cs">
+    <Compile Include="Settings RSP1.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Settings1.Designer.cs">
-      <DependentUpon>Settings1.cs</DependentUpon>
+    <Compile Include="Settings RSP1.Designer.cs">
+      <DependentUpon>Settings RSP1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Settings.cs" />
+    <Compile Include="SettingsRtlSdr.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SettingsRtlSdr.Designer.cs">
+      <DependentUpon>SettingsRtlSdr.cs</DependentUpon>
     </Compile>
     <Compile Include="ThreadDraw.cs">
       <SubType>Form</SubType>
@@ -224,6 +244,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
     <Compile Include="USBSupport.cs" />
+    <Compile Include="UserControl1.xaml.cs">
+      <DependentUpon>UserControl1.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Win32.cs" />
     <Compile Include="Window1.cs" />
     <Compile Include="WindowFlow.cs" />
@@ -237,6 +260,7 @@
     <Compile Include="WindowWave.cs" />
     <EmbeddedResource Include="ColorForm.resx">
       <DependentUpon>ColorForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="CorrelateControl.resx">
       <DependentUpon>CorrelateControl.cs</DependentUpon>
@@ -247,6 +271,9 @@
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Map.resx">
+      <DependentUpon>Map.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -261,8 +288,11 @@
     <EmbeddedResource Include="RadarControl.resx">
       <DependentUpon>RadarControl.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Settings1.resx">
-      <DependentUpon>Settings1.cs</DependentUpon>
+    <EmbeddedResource Include="Settings RSP1.resx">
+      <DependentUpon>Settings RSP1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SettingsRtlSdr.resx">
+      <DependentUpon>SettingsRtlSdr.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="TuningNumber.resx">
       <DependentUpon>TuningNumber.cs</DependentUpon>
@@ -304,10 +334,17 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="mark.png" />
     <Content Include="play.png" />
     <Content Include="Radar.ico" />
     <Content Include="SDRdue2.ico" />
     <Content Include="stop.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="UserControl1.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\MonoGame.Framework.WindowsDX.3.8.0.1641\build\MonoGame.Framework.WindowsDX.targets" Condition="Exists('..\packages\MonoGame.Framework.WindowsDX.3.8.0.1641\build\MonoGame.Framework.WindowsDX.targets')" />

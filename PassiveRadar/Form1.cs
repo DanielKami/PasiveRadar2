@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows.Forms;
+
 
 namespace PasiveRadar
 {
@@ -16,20 +17,27 @@ namespace PasiveRadar
         Flags save_flags1;
         Flags save_flags2;
 
-        Find find;
-        Radio[] radio;
+        FindRtlSdr findRtlSdr;
+        FindRSP1 findRSP1;
+        RadioRtlSdr[] radioRtlSdr;   //Control window for RTL-SDR devices
+        RadioRSP1[] radioRSP1 = null; //Control window for Miri devices
         Calculate[] calculate;
-        Correlate correlate;
-        RadarCumulate radar_cumulate;
+        RadarCumulate[] radar_cumulate;
+        RadarCumulate[] map_cumulate;
+
+
         Ambiguity ambiguity;
-        ClassRegresion Regresion;
-        Settings[] set;
-        WindowsRadio[] rd;
-        Window windowRadar, windowBackground, windowCorrelateWave, windowCorrelateFlow;
+        ClassRegresion[] Regresion;
+        ClassRegresion[] RegresionMap;
 
+        SettingsRtlSdr[] setRtlSdr;
+        Settings_RSP1[] setSDRplays;
+        WindowsRadio[] radio_window;
+        Window[] windowRadar;
 
-        int[] dataOutRadio0;
-        int[] dataOutRadio1;
+        Map mMap;
+
+        short[][] dataOutRadio;
 
         bool FormsReady = false;
         bool runing = false;
@@ -42,92 +50,128 @@ namespace PasiveRadar
         {
             InitializeComponent();
             //           UsbNotification.RegisterUsbDeviceNotification(this.Handle);
-
+            // SDR1_init();
             //Initialize all flags and values for controls
             flags = new Flags();
             save_flags1 = new Flags();
             save_flags2 = new Flags();
+            ambiguity = new Ambiguity();
 
-            
             flags.Read();
             flags.AMDdriver = FindAMD();//Detect AMD video driver
 
             save_flags1.Copy(flags);
             save_flags2.Copy(flags);
 
-            ButtonFreqEqual(); //Set the correct icone and values for frequency
-            RadarMode();
-
             //Mouse position parameters
-            MouseDownPanel = new bool[Flags.MAX_DONGLES];
-            oldX_position = new int[Flags.MAX_DONGLES];
-            MHz_perPixel = new double[Flags.MAX_DONGLES];
-
-
-            if (flags.FREQUENCY_EQUAL)
-                for (int i = 1; i < Flags.MAX_DONGLES; i++)
-                    flags.frequency[i] = flags.frequency[0];
+            MouseDownPanel = new bool[Flags.ALL_DONGLES];
+            oldX_position = new int[Flags.ALL_DONGLES];
+            MHz_perPixel = new double[Flags.ALL_DONGLES];
 
             string[] str = new string[16];
-            find = new Find();
-            find.Device();
+            findRtlSdr = new FindRtlSdr();
+            findRSP1 = new FindRSP1();
 
-            radio = new Radio[Flags.MAX_DONGLES];
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
-                radio[i] = new Radio();
+            findRSP1.Device();
+            findRtlSdr.Device();
+
+            radioRtlSdr = new RadioRtlSdr[Flags.MAX_DONGLES_RTLSDR];
+            for (int i = 0; i < Flags.MAX_DONGLES_RTLSDR; i++)
+                radioRtlSdr[i] = new RadioRtlSdr();
+
+            //Last window 
+            radioRSP1 = new RadioRSP1[Flags.MAX_DONGLES_RSP1];
+            for (int i = 0; i < Flags.MAX_DONGLES_RSP1; i++)
+                radioRSP1[i] = new RadioRSP1();
+
+
 
 
 
             #region Windows
-            windowRadar = new Window(panelViewport2, 0);
-            windowBackground = new Window(panelViewport3, 0);
+            windowRadar = new Window[Flags.ALL_DONGLES];
+            windowRadar[0] = new Window(panelViewport1, 0);
+            windowRadar[1] = new Window(panelViewport2, 0);
+            windowRadar[2] = new Window(panelViewport3, 0);
+            windowRadar[3] = new Window(panelViewport4, 0);
 
-            windowCorrelateWave = new Window(panelViewport6, 1);
-            windowCorrelateFlow = new Window(panelViewport7, 1);
+            window_wave = new WindowWave[Flags.ALL_DONGLES];
+            window_flow = new WindowFlow[Flags.ALL_DONGLES];
 
-            window_wave = new WindowWave[Flags.MAX_DONGLES];
-            window_flow = new WindowFlow[Flags.MAX_DONGLES];
+            radio_window = new WindowsRadio[Flags.ALL_DONGLES];
 
-            rd = new WindowsRadio[Flags.MAX_DONGLES];
-
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
+            for (int i = 0; i < Flags.MAX_DONGLES_RTLSDR; i++)
             {
-                rd[i] = new WindowsRadio(i);
-                rd[i].Show();
-                rd[i].tuningNumber.frequency = (int)flags.frequency[i];
-                rd[i].tuningNumber.Update_(false);
-                rd[i].Initialize(flags);
+                radio_window[i] = new WindowsRadio(i, "RTLSDR");
+                radio_window[i].Show();
+                radio_window[i].tuningNumber.frequency = (int)flags.frequency[i];
+                radio_window[i].tuningNumber.Update_(false);
+                radio_window[i].Initialize(flags);
 
-                window_wave[i] = new WindowWave(rd[i].panelRadioWave, i);
-                window_flow[i] = new WindowFlow(rd[i].panelRadioFlow, i);
+                window_wave[i] = new WindowWave(radio_window[i].panelRadioWave, i);
+                window_flow[i] = new WindowFlow(radio_window[i].panelRadioFlow, i);
+            }
+
+            for (int i = (int)Flags.MAX_DONGLES_RTLSDR; i < Flags.ALL_DONGLES; i++)
+            {
+                radio_window[i] = new WindowsRadio(i, "SDRPLAY");
+                radio_window[i].Show();
+                radio_window[i].tuningNumber.frequency = (int)flags.frequency[i];
+                radio_window[i].tuningNumber.Update_(false);
+                radio_window[i].Initialize(flags);
+
+                window_wave[i] = new WindowWave(radio_window[i].panelRadioWave, i);
+                window_flow[i] = new WindowFlow(radio_window[i].panelRadioFlow, i);
             }
             #endregion
-            //No dongles no two dongles that is easy
-            flags.TwoDonglesMode = false;
 
-            radar_cumulate = new RadarCumulate();
-            ambiguity = new Ambiguity();
+            DrawRadio();
 
-            calculate = new Calculate[Flags.MAX_DONGLES];
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
+            radar_cumulate = new RadarCumulate[Flags.ALL_DONGLES];
+            Regresion = new ClassRegresion[Flags.ALL_DONGLES];
+            calculate = new Calculate[Flags.ALL_DONGLES];
+            map_cumulate = new RadarCumulate[Flags.ALL_DONGLES];
+            RegresionMap = new ClassRegresion[Flags.ALL_DONGLES];
+
+            for (int i = 0; i < Flags.ALL_DONGLES; i++)
+            {
+                map_cumulate[i] = new RadarCumulate();
                 calculate[i] = new Calculate();
+                Regresion[i] = new ClassRegresion();
+                RegresionMap[i] = new ClassRegresion();
+                radar_cumulate[i] = new RadarCumulate();
+                LockMainDataStream[i] = new Object();
+                LockRadarScene[i] = new Object();
+                LockMap[i] = new Object();
+            }
 
-            Regresion = new ClassRegresion();
-
-            correlate = new Correlate();
             InitBuffers();
 
             #region Setting windows
-            set = new Settings[Flags.MAX_DONGLES];
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
-                set[i] = new Settings(i);
+            setRtlSdr = new SettingsRtlSdr[Flags.MAX_DONGLES_RTLSDR];
+            for (int i = 0; i < Flags.MAX_DONGLES_RTLSDR; i++)
+                setRtlSdr[i] = new SettingsRtlSdr(i);
 
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
+            setSDRplays = new Settings_RSP1[Flags.MAX_DONGLES_RSP1];
+            for (int i = 0; i < Flags.MAX_DONGLES_RSP1; i++)
+                setSDRplays[i] = new Settings_RSP1(i);
+
+            for (int i = 0; i < Flags.MAX_DONGLES_RTLSDR; i++)
             {
-                if (radio[i] != null)
+                if (radioRtlSdr[i] != null)
                 {
-                    radio[i].rate = (uint)flags.rate[i];
-                    set[i].SetSettings(radio[i]);
+                    radioRtlSdr[i].rate = (uint)flags.rate[i];
+                    setRtlSdr[i].SetSettings(radioRtlSdr[i]);
+                }
+            }
+
+            for (int i = 0; i < Flags.MAX_DONGLES_RSP1; i++)
+            {
+                if (setSDRplays[i] != null)
+                {
+                    radioRSP1[i].rate = (uint)flags.rate[i + Flags.MAX_DONGLES_RTLSDR];
+                    radioRSP1[i].bandwith = (uint)flags.bandwitch[i + Flags.MAX_DONGLES_RTLSDR];
+                    setSDRplays[i].SetSettings(radioRSP1[i]);
                 }
             }
 
@@ -135,25 +179,29 @@ namespace PasiveRadar
 
             RestoreState();
 
-
             #region Events
 
             //User control settings
-            Settings.EventGain += new Settings.MyDelegateSettings(ReturnRadioSettings);
+            SettingsRtlSdr.EventGain += new SettingsRtlSdr.MyDelegateSettings(ReturnRadioSettingsRtlSdr);
+            Settings_RSP1.EventGain += new Settings_RSP1.MyDelegateSettings(ReturnRadioSettingsRSP1);
             DisplayControl.EventSettings += new DisplayControl.MyDelegate(DisplaySettings);
             RadarControl.RadarSettings += new RadarControl.MyDelegate(RadarSettings);
-            CorrelateControl.EventSettings += new CorrelateControl.MyDelegate(CorrelationSettings);
+            TranslateControl.EventSettings += new TranslateControl.MyDelegate(TranslationSettings);
 
 
 
-            ///Radio data ready
-            Settings.EventRadio += new Settings.MyDelegate(AddRadio);
+            ///Radio rtlsdr data ready
+            SettingsRtlSdr.EventRadio += new SettingsRtlSdr.MyDelegate(AddRadio);
+            ///Radio sdrplay data ready
+            Settings_RSP1.EventRadio += new Settings_RSP1.MyDelegate(AddRadioSDR1);
+            ///Radio sdrplay data ready
+           // Settings_SDRplay.EventRadio += new Settings_SDRplay.MyDelegate(AddRadioSDRplay);
 
             //WindowsRadio size changed
             WindowsRadio.SizeChangedx += new WindowsRadio.DelegateEvents(WindowsSizeCorection);
 
             //Radio Set pressed
-            WindowsRadio.RadioSet += new WindowsRadio.DelegateEvents(WindowsSetPressed);
+            WindowsRadio.RadioSet += new WindowsRadio.DelegateEventsSettings(WindowsSetPressed);
 
             //Windows radio mouse event
             WindowsRadio.RadioMouseDown += new WindowsRadio.DelegateMouse(CalculateMouseDown);
@@ -161,7 +209,7 @@ namespace PasiveRadar
             WindowsRadio.RadioMouseUp += new WindowsRadio.DelegateMouse(CalculateMouseUp);
 
             //Window radio frequency changed
-            WindowsRadio.RadioFrequencyChanged += new WindowsRadio.DelegateEvents(WindowRadioFrequencyChanged);
+            WindowsRadio.RadioFrequencyChanged += new WindowsRadio.DelegateEventsSettings(WindowRadioFrequencyChanged);
 
             //Window radio settings
             WindowsRadio.EventSettings += new WindowsRadio.MyDelegate(DisplaySettings2);
@@ -169,15 +217,8 @@ namespace PasiveRadar
             //Color changes
             ColorForm.EventColor += new ColorForm.MyDelegate(SetCustomColor);
 
-            //Resunchronise correation
-            Correlate.Resynchronise += new Correlate.MyDelegate(Resynchronise);
-
             #endregion
-            if (flags.TwoDonglesMode == false)
-            {
-                flags.showRadar = false;
-                flags.showBackground = false;
-            }
+
 
             //Update all user controls
             UpdateFrequencies(flags.LastActiveWindowRadio);
@@ -187,31 +228,32 @@ namespace PasiveRadar
             InitSiteMenu();
         }
 
-        private void WindowRadioFrequencyChanged(int Nr)
+        private void WindowRadioFrequencyChanged(int Nr, string type) //type:RTLSDR or SDRPLAY
         {
-            flags.frequency[Nr] = rd[Nr].tuningNumber.frequency + (int)flags.FilterCentralFreq[Nr];
-            if (flags.FREQUENCY_EQUAL)
+            flags.frequency[Nr] = radio_window[Nr].tuningNumber.frequency;
+
+            if (type == "RTLSDR")
             {
-                //Update in windows
-                for (int i = 0; i < Flags.MAX_DONGLES; i++)
+                if (radioRtlSdr == null) return;
+
+                for (int i = 0; i < Flags.MAX_DONGLES_RTLSDR; i++)
                 {
-                    if (i != Nr)
+                    if (radioRtlSdr[i] != null)
                     {
-                        flags.frequency[i] = flags.frequency[Nr];
-                        rd[i].tuningNumber.frequency = (int)flags.frequency[Nr];
-                        rd[i].tuningNumber.Update_(false);
+                        radioRtlSdr[i].frequency = (int)flags.frequency[i];
+                        radioRtlSdr[i].SetCentralFreq();
                     }
                 }
             }
+            if (type == "SDRPLAY")
+                if (radioRSP1 == null) return;
 
-            if (radio == null) return;
-
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
+            for (int i = 0; i < Flags.MAX_DONGLES_RSP1; i++)
             {
-                if (radio[i] != null)
+                if (radioRSP1[i] != null)
                 {
-                    radio[i].frequency = (int)flags.frequency[i];
-                    radio[i].SetCentralFreq();
+                    radioRSP1[i].frequency = (int)flags.frequency[i + Flags.MAX_DONGLES_RTLSDR];
+                    radioRSP1[i].SetCentralFreq();
                 }
             }
 
@@ -229,9 +271,10 @@ namespace PasiveRadar
                 flags.ColorThemeTable[i].A = 255;
             }
             //WindowsUpdate();
-            windowRadar.Update(flags);
-            windowBackground.Update(flags);
-            windowCorrelateFlow.Update(flags);
+
+            for (int i = 0; i < Flags.ALL_DONGLES; i++)
+                windowRadar[i].Update(flags);
+
             foreach (WindowFlow x in window_flow)
                 if (x != null) x.Update(flags);
         }
@@ -249,106 +292,134 @@ namespace PasiveRadar
         }
 
         //USB support needs more selectivity a simple way
-        protected override void WndProc(ref Message m)
-        {
-            int devType;
+        //protected override void WndProc(ref Message m)
+        //{
+        //    int devType;
 
-            base.WndProc(ref m);
-            if (m.Msg == UsbNotification.WmDevicechange)
-            {
-                switch ((int)m.WParam)
-                {
-                    case UsbNotification.DbtDeviceremovecomplete:
+        //    base.WndProc(ref m);
+        //    if (m.Msg == UsbNotification.WmDevicechange)
+        //    {
+        //        switch ((int)m.WParam)
+        //        {
+        //            case UsbNotification.DbtDeviceremovecomplete:
 
-                        devType = Marshal.ReadInt32(m.LParam, 4);
-                        //MessageBox.Show("MEDIArem");
-                        //No radio 0 and 1
-                        StopDraw();
+        //                devType = Marshal.ReadInt32(m.LParam, 4);
+        //                //MessageBox.Show("MEDIArem");
+        //                //No radio 0 and 1
+        //                StopDraw();
 
-                        for (int i = 0; i < Flags.MAX_DONGLES; i++)
-                        {
-                            if (radio[i] != null)
-                            {
-                                radio[i].Stop();
-                                radio[i].Close();
-                            }
-                            set[i].ComboBoxRadio_Update(ref find);
-                        }
+        //                for (int i = 0; i < Flags.ALL_DONGLES; i++)
+        //                {
+        //                    if (radioRtlSdr[i] != null)
+        //                    {
+        //                        radioRtlSdr[i].Stop();
+        //                        radioRtlSdr[i].Close();
+        //                    }
+        //                    setRtlSdr[i].ComboBoxRadio_Update(ref findRtlSdr);
+        //                }
 
-                        find.NrOfDevices = 1;
+        //                findRtlSdr.NrOfDevices = 1;
 
 
-                        break;
+        //                break;
 
-                    case UsbNotification.DbtDevicearrival:
-                        {
-                            devType = Marshal.ReadInt32(m.LParam, 4);
-                            if (devType == 5)
-                            {
-                                String str = "New usb device found";
-                                MessageBox.Show(str);
-                            }
-                            //No radio 0 and 1
-                            StopDraw();
+        //            case UsbNotification.DbtDevicearrival:
+        //                {
+        //                    devType = Marshal.ReadInt32(m.LParam, 4);
+        //                    if (devType == 5)
+        //                    {
+        //                        String str = "New usb device found";
+        //                        MessageBox.Show(str);
+        //                    }
+        //                    //No radio 0 and 1
+        //                    StopDraw();
 
-                            for (int i = 0; i < Flags.MAX_DONGLES; i++)
-                            {
-                                if (radio[i] != null)
-                                {
-                                    radio[i].Stop();
-                                    radio[i].Close();
-                                }
-                            }
+        //                    for (int i = 0; i < Flags.ALL_DONGLES; i++)
+        //                    {
+        //                        if (radioRtlSdr[i] != null)
+        //                        {
+        //                            radioRtlSdr[i].Stop();
+        //                            radioRtlSdr[i].Close();
+        //                        }
+        //                    }
 
-                            if (!radio[0].status || !radio[1].status)
-                            {
-                                find.Device();
-                                for (int i = 0; i < Flags.MAX_DONGLES; i++)
-                                    set[i].ComboBoxRadio_Update(ref find);
-                            }
+        //                    if (!radioRtlSdr[0].status || !radioRtlSdr[1].status)
+        //                    {
+        //                        findRtlSdr.Device();
+        //                        for (int i = 0; i < Flags.ALL_DONGLES; i++)
+        //                            setRtlSdr[i].ComboBoxRadio_Update(ref findRtlSdr);
+        //                    }
 
-                        }
-                        break;
-                }
-            }
-        }
+        //                }
+        //                break;
+        //        }
+        //    }
+        //}
 
 
         private void InitBuffers()
         {
             lock (LockMem)
             {
-                for (int i = 0; i < Flags.MAX_DONGLES; i++)
+                for (int i = 0; i < Flags.MAX_DONGLES_RTLSDR; i++)
                 {
-                    if (radio[i] != null)
+                    if (radioRtlSdr[i] != null)
                     {
-                        radio[i].InitBuffers(flags);
+                        radioRtlSdr[i].InitBuffers(flags);
                     }
                 }
 
-                dataRadio = new double[Flags.MAX_DONGLES][];
-                for (int i = 0; i < Flags.MAX_DONGLES; i++)
+                for (int i = 0; i < Flags.MAX_DONGLES_RSP1; i++)
+                {
+                    if (radioRSP1[i] != null)
+                    {
+                        radioRSP1[i].InitBuffers(flags);
+                    }
+                }
+
+                dataRadio = new double[Flags.ALL_DONGLES][];
+                for (int i = 0; i < Flags.ALL_DONGLES; i++)
                     dataRadio[i] = new double[flags.BufferSize];
 
-                dataRadar = new float[flags.Columns * flags.Rows + flags.Columns];
-                dataDifference = new double[flags.BufferSizeRadio[0] + 1];
+                dataRadar = new float[Flags.ALL_DONGLES][];
+                for (int i = 0; i < Flags.ALL_DONGLES; i++)
+                    dataRadar[i] = new float[flags.Columns * flags.Rows + flags.Columns];
 
-                for (int i = 0; i < Flags.MAX_DONGLES; i++)
+
+                for (int i = 0; i < Flags.ALL_DONGLES; i++)
+                {
                     calculate[i].Init(flags.BufferSizeRadio[i], flags.Cumulation[i]);
+                    radar_cumulate[i].Init(flags);
+                    map_cumulate[i].Init(flags);
+                }
 
-
-                radar_cumulate.Init(flags);
+                if (mMap != null)
+                    mMap.CopyFlags(flags);
                 //uint BufferNegPos = flags.BufferSize + (flags.Negative + flags.Positive) * 2;
-                uint BufferNegPos = flags.BufferSize + (Flags.PositiveMax + Flags.NegativeMax) * 2;
+                uint BufferNegPos = flags.BufferSize;
 
-                dataOutRadio0 = new int[BufferNegPos];
-                dataOutRadio1 = new int[BufferNegPos];
 
-                PostProc = new float[flags.Columns * flags.Rows];
+                dataOutRadio = new short[Flags.MAX_DONGLES_RSP1 + Flags.MAX_DONGLES_RTLSDR][];//
+                for (int i = 0; i < Flags.MAX_DONGLES_RSP1 + Flags.MAX_DONGLES_RTLSDR; i++)
+                    dataOutRadio[i] = new short[BufferNegPos];
 
-                ambiguity.Release(flags);
-                ambiguity.Prepare(flags);
-                Regresion.Initiate(flags);
+                PostProc = new float[Flags.MAX_DONGLES_RSP1 + Flags.MAX_DONGLES_RTLSDR][];
+                for (int i = 0; i < Flags.MAX_DONGLES_RSP1 + Flags.MAX_DONGLES_RTLSDR; i++)
+                    PostProc[i] = new float[flags.Columns * flags.Rows];
+
+                if (ambiguity != null)
+                {
+                    ambiguity.Release(flags);
+                    ambiguity.Prepare(flags);
+                }
+
+                for (int i = 0; i < Flags.MAX_DONGLES_RSP1 + Flags.MAX_DONGLES_RTLSDR; i++)
+                {
+                    if (Regresion[i] != null)
+                        Regresion[i].Initiate(flags);
+                    if (RegresionMap[i] != null)
+                        RegresionMap[i].Initiate(flags);
+                }
             }
         }
 
@@ -362,16 +433,17 @@ namespace PasiveRadar
 
         private void buttonStart_Click(object sender, EventArgs e)
         {
-            if (find.NrOfDevices == 0) return;
+            if (findRtlSdr.NrOfDevices == 0) return;
             if (runing == false)
             {
-                radarControl1.ActiveDeactivateColumnsControll(false);
+
                 //init buffers just in case
                 InitBuffers();
 
-                if (CheckTheCorrelationRadarRate())
+                // if (CheckTheCorrelationRadarRate())
                 {
                     runing = true;
+                    WindowsUpdate();
                     StartAllRadios();
                     StartDraw();
                     button1.ImageIndex = 1;
@@ -379,8 +451,8 @@ namespace PasiveRadar
             }
             else
             {
-                if (find.NrOfDevices == 0) return;
-                radarControl1.ActiveDeactivateColumnsControll(true);
+                if (findRtlSdr.NrOfDevices == 0) return;
+                // radarControl1.ActiveDeactivateColumnsControll(true);
                 StopAllThreads();
                 StopAllRadios();
                 button1.ImageIndex = 0;
@@ -390,24 +462,46 @@ namespace PasiveRadar
 
         void StopAllRadios()
         {
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
-            {
-                if (radio[i] != null)
+            if (radioRtlSdr != null)
+                for (int i = 0; i < Flags.MAX_DONGLES_RTLSDR; i++)
                 {
-                    radio[i].Stop();
+                    if (radioRtlSdr[i] != null & radioRtlSdr[i].status)
+                    {
+                        radioRtlSdr[i].Stop();
+                    }
                 }
-            }
+
+            if (radioRSP1 != null)
+                for (int i = 0; i < Flags.MAX_DONGLES_RSP1; i++)
+                {
+                    if (radioRSP1[i] != null & radioRSP1[i].status)
+                    {
+                        radioRSP1[i].Stop();
+                    }
+                }
         }
 
         void StartAllRadios()
         {
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
-            {
-                if (radio[i] != null)
+            if (radioRtlSdr != null)
+                for (int i = 0; i < Flags.MAX_DONGLES_RTLSDR; i++)
                 {
-                    radio[i].Start();
+                    if (radioRtlSdr[i] != null & radioRtlSdr[i].status)
+                    {
+                        radioRtlSdr[i].Start();
+                    }
                 }
-            }
+
+            if (radioRSP1 != null)
+                for (int i = 0; i < Flags.MAX_DONGLES_RSP1; i++)
+                {
+                    if (radioRSP1[i] != null & radioRSP1[i].status)
+                    {
+                        if (radioRSP1[i].exited == false)
+                            radioRSP1[i].Stop();
+                        radioRSP1[i].Start();
+                    }
+                }
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -418,21 +512,30 @@ namespace PasiveRadar
             StopDraw();
             ambiguity.Release(flags); //OpenCL AMD clear and close
 
-            if (find.NrOfDevices == 0) return;
-            if (radio != null)
-                for (int i = 0; i < Flags.MAX_DONGLES; i++)
+            if (findRtlSdr.NrOfDevices == 0) return;
+            if (radioRtlSdr != null)
+                for (int i = 0; i < Flags.MAX_DONGLES_RTLSDR; i++)
                 {
-                    if (radio[i] != null)
+                    if (radioRtlSdr[i] != null)
                     {
-                        radio[i].Stop();
-                        radio[i].Close();
+                        radioRtlSdr[i].Stop();
+                        radioRtlSdr[i].Close();
                     }
                 }
 
-            windowRadar.service.ResetingDevice();
-            windowBackground.service.ResetingDevice();
-            windowCorrelateWave.service.ResetingDevice();
-            windowCorrelateFlow.service.ResetingDevice();
+            if (findRSP1.NrOfDevices == 0) return;
+            if (findRSP1 != null)
+                for (int i = 0; i < Flags.MAX_DONGLES_RSP1; i++)
+                {
+                    if (radioRSP1[i] != null)
+                    {
+                        radioRSP1[i].Stop();
+                        radioRSP1[i].Close();
+                    }
+                }
+
+            for (int i = 0; i < Flags.ALL_DONGLES; i++)
+                windowRadar[i].service.ResetingDevice();
 
             foreach (WindowWave x in window_wave)
                 x.service.ResetingDevice();
@@ -458,26 +561,30 @@ namespace PasiveRadar
             Properties.Settings.Default.MainFormState = WindowState;
             Properties.Settings.Default.Save();
 
+            Properties.Settings.Default.Spliter1 = splitContainer1.SplitterDistance;
+            Properties.Settings.Default.Spliter2 = splitContainer2.SplitterDistance;
+            Properties.Settings.Default.Spliter3 = splitContainer3.SplitterDistance;
+
             //Radio windows
             Properties.Settings.Default.ListFormLocation = "";
             Properties.Settings.Default.ListFormSize = "";
             Properties.Settings.Default.ListFormState = "";
             Properties.Settings.Default.ListFormShow = "";
 
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
+            for (int i = 0; i < Flags.ALL_DONGLES; i++)
             {
-                if (rd[i].WindowState == FormWindowState.Normal)
+                if (radio_window[i].WindowState == FormWindowState.Normal)
                 {
-                    Properties.Settings.Default.ListFormLocation += rd[i].Location.X + "," + rd[i].Location.Y + ",";
-                    Properties.Settings.Default.ListFormSize += rd[i].Size.Width + "," + rd[i].Size.Height + ",";
+                    Properties.Settings.Default.ListFormLocation += radio_window[i].Location.X + "," + radio_window[i].Location.Y + ",";
+                    Properties.Settings.Default.ListFormSize += radio_window[i].Size.Width + "," + radio_window[i].Size.Height + ",";
                 }
                 else
                 {
-                    Properties.Settings.Default.ListFormLocation += rd[i].RestoreBounds.X + "," + rd[i].RestoreBounds.Y + ",";
-                    Properties.Settings.Default.ListFormSize += rd[i].RestoreBounds.Size.Width + "," + rd[i].RestoreBounds.Size.Height + ",";
+                    Properties.Settings.Default.ListFormLocation += radio_window[i].RestoreBounds.X + "," + radio_window[i].RestoreBounds.Y + ",";
+                    Properties.Settings.Default.ListFormSize += radio_window[i].RestoreBounds.Size.Width + "," + radio_window[i].RestoreBounds.Size.Height + ",";
                 }
-                Properties.Settings.Default.ListFormState += rd[i].WindowState + ",";
-                Properties.Settings.Default.ListFormShow += rd[i].Visible + ",";
+                Properties.Settings.Default.ListFormState += radio_window[i].WindowState + ",";
+                Properties.Settings.Default.ListFormShow += radio_window[i].Visible + ",";
             }
             Properties.Settings.Default.Save();
         }
@@ -495,48 +602,52 @@ namespace PasiveRadar
             WindowState = Properties.Settings.Default.MainFormState ==
               FormWindowState.Minimized ? FormWindowState.Normal : Properties.Settings.Default.MainFormState;
 
+            //Spliters
+            splitContainer1.SplitterDistance = Properties.Settings.Default.Spliter1;
+            splitContainer2.SplitterDistance = Properties.Settings.Default.Spliter2;
+            splitContainer3.SplitterDistance = Properties.Settings.Default.Spliter3;
             //Radio Windows
             //Position
             List<Point> PositionList = ConvertStringToPoint(Properties.Settings.Default.ListFormLocation);
             if (PositionList.Count > 0)
-                for (int i = 0; i < Flags.MAX_DONGLES; i++)
+                for (int i = 0; i < Flags.ALL_DONGLES; i++)
                 {
                     if (i < PositionList.Count)
                     {
-                        rd[i].StartPosition = FormStartPosition.Manual;
-                        rd[i].Location = PositionList[i];
+                        radio_window[i].StartPosition = FormStartPosition.Manual;
+                        radio_window[i].Location = PositionList[i];
                     }
                 }
 
             //Size
             List<Size> SizeList = ConvertStringToSize(Properties.Settings.Default.ListFormSize);
             if (SizeList.Count > 0)
-                for (int i = 0; i < Flags.MAX_DONGLES; i++)
+                for (int i = 0; i < Flags.ALL_DONGLES; i++)
                 {
                     if (i < SizeList.Count)
                     {
-                        rd[i].Size = SizeList[i];
+                        radio_window[i].Size = SizeList[i];
                     }
                 }
 
             //State
             List<FormWindowState> StateList = ConvertStringToFormWindowState(Properties.Settings.Default.ListFormState);
             if (StateList.Count > 0)
-                for (int i = 0; i < Flags.MAX_DONGLES; i++)
+                for (int i = 0; i < Flags.ALL_DONGLES; i++)
                 {
                     if (i < StateList.Count)
                     {
-                        rd[i].WindowState = StateList[i];
+                        radio_window[i].WindowState = StateList[i];
                     }
                 }
 
             List<bool> ShowList = ConvertStringToBolean(Properties.Settings.Default.ListFormShow);
             if (ShowList.Count > 0)
-                for (int i = 0; i < Flags.MAX_DONGLES; i++)
+                for (int i = 0; i < Flags.ALL_DONGLES; i++)
                 {
                     if (i < ShowList.Count)
                     {
-                        rd[i].Visible = ShowList[i];
+                        radio_window[i].Visible = ShowList[i];
                     }
                 }
         }
@@ -564,7 +675,7 @@ namespace PasiveRadar
                 foreach (string txt in Str.Split(','))
                     if (txt != "") arr.Add(int.Parse(txt));
 
-                for (int i = 0; i < Flags.MAX_DONGLES; i++)
+                for (int i = 0; i < Flags.ALL_DONGLES; i++)
                     if (i * 2 < arr.Count - 1)
                         P.Add(new Point(arr[i * 2], arr[i * 2 + 1]));
             }
@@ -581,7 +692,7 @@ namespace PasiveRadar
                 foreach (string txt in Str.Split(','))
                     if (txt != "") arr.Add(int.Parse(txt));
                 //Now use ints to create List of Sizes
-                for (int i = 0; i < Flags.MAX_DONGLES; i++)
+                for (int i = 0; i < Flags.ALL_DONGLES; i++)
                     if (i * 2 < arr.Count - 1)
                         S.Add(new Size(arr[i * 2], arr[i * 2 + 1]));
             }
@@ -603,7 +714,9 @@ namespace PasiveRadar
 
         private void panelViewport_MouseLeave(object sender, EventArgs e)
         {
-            windowRadar.Location(-1);
+            for (int i = 0; i < Flags.ALL_DONGLES; i++)
+                windowRadar[i].Location(-1);
+
             foreach (WindowWave x in window_wave)
                 x.Location(-1, -1, -1);
             foreach (WindowFlow x in window_flow)
@@ -618,7 +731,7 @@ namespace PasiveRadar
             flags.Cumulation[Nr] = LocalFlags.Cumulation[Nr];
             flags.Level[Nr] = LocalFlags.Level[Nr];
 
-            if (flags.BufferSizeRadio != LocalFlags.BufferSizeRadio)
+            if (flags.BufferSizeRadio[Nr] != LocalFlags.BufferSizeRadio[Nr])
             {
                 StopDraw();
                 StopAllRadios();
@@ -636,38 +749,65 @@ namespace PasiveRadar
 
         public void DisplaySettings(Flags LocalFlags)
         {
-            flags.showRadar = LocalFlags.showRadar;
+            for (int ix = 0; ix < Flags.ALL_DONGLES; ix++)
+                flags.showRadar[ix] = LocalFlags.showRadar[ix];
+
             flags.showBackground = LocalFlags.showBackground;
-            flags.showCorrelateWave0 = LocalFlags.showCorrelateWave0;
-            flags.showCorrelateFlow0 = LocalFlags.showCorrelateFlow0;
 
             flags.ColorTheme = LocalFlags.ColorTheme;
             flags.refresh_delay = LocalFlags.refresh_delay;
             flags.Radio_buffer_size = LocalFlags.Radio_buffer_size;
             displayControl1.UpdateTable(flags);
 
-
+            if (flags.BufferSize != LocalFlags.BufferSize)
+            {
+                StopDraw();
+                StopAllRadios();
+                flags.BufferSizeRadio = LocalFlags.BufferSizeRadio;
+                InitBuffers();
+                if (runing)
+                {
+                    StartAllRadios();
+                    StartDraw();
+                }
+            }
             WindowsUpdate();
         }
 
-        bool CheckTheCorrelationRadarRate()
-        {
-            bool res = true;
-            if ((flags.showRadar || flags.showCorrelateFlow0 || flags.showCorrelateWave0) && flags.rate[0] != flags.rate[1])
-            {
-                flags.showRadar = false;
-                flags.showCorrelateWave0 = false;
-                flags.showCorrelateFlow0 = false;
-                displayControl1.FalseCheckBoxes();
-                res = false;
-                StopAllThreads();
-                StopAllRadios();
-                MessageBox.Show("The radio 0 rate is different than the radio 1. Make them equal to start correlation or /and radar. ", "Info", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
-                button1.ImageIndex = 0;
-                runing = false;
-            }
-            return res;
-        }
+        //bool CheckTheCorrelationRadarRate()
+        //{
+        //    bool res = true;
+        //    if (flags.showRadar && flags.rate[0] != flags.rate[1])
+        //    {
+        //        flags.showRadar = false;
+
+        //        displayControl1.FalseCheckBoxes();
+        //        res = false;
+        //        StopAllThreads();
+        //        StopAllRadios();
+        //        MessageBox.Show("The radio 0 rate is different than the radio 1. Make them equal to start correlation or /and radar. ", "Info", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+        //        button1.ImageIndex = 0;
+        //        runing = false;
+        //    }
+        //    return res;
+        //}
+
+
+        //private void RadarMode()
+        //{
+        //    if (flags.showRadar)
+        //    {
+        //        //Reduce bandwith to the the highest working one
+        //        if (flags.rate[0] > 2560000) flags.rate[0] = 2560000;
+        //        //Set 1 and 2 radios to the same bandwith and buffer size
+        //        if (flags.rate[1] != flags.rate[0] || flags.frequency[1] != flags.frequency[0])
+        //        {
+        //            //  StopAllThreads();
+        //            flags.rate[1] = flags.rate[0];
+        //            flags.frequency[1] = flags.frequency[0];
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// Apply the radar settings from Radar settings panel
@@ -689,35 +829,38 @@ namespace PasiveRadar
                 flags.NrCorrectionPoints = LocalFlags.NrCorrectionPoints;
                 flags.scale_type = LocalFlags.scale_type;
                 flags.alpha = LocalFlags.alpha;
-
+                flags.NrReduceRows = LocalFlags.NrReduceRows;
 
                 if (runing == true)  //on running
                 {
-
                     if (flags.BufferSize != LocalFlags.BufferSize ||
                         flags.Columns != LocalFlags.Columns ||
                         flags.Rows != LocalFlags.Rows ||
-                        flags.TwoDonglesMode != LocalFlags.TwoDonglesMode ||
                         flags.NrCorrectionPoints != LocalFlags.NrCorrectionPoints
                         )
                     {
                         StopDraw();
-                        radio[0].Stop();
-                        radio[1].Stop();
+                        for (int i = 0; i < Flags.MAX_DONGLES_RTLSDR; i++)
+                            if (radioRtlSdr[i] != null)
+                                radioRtlSdr[i].Stop();
+
+                        for (int i = 0; i < Flags.MAX_DONGLES_RSP1; i++)
+                            if (radioRSP1[i] != null)
+                                radioRSP1[i].Stop();
 
                         flags.Columns = LocalFlags.Columns;
                         flags.Rows = LocalFlags.Rows;
-                        flags.TwoDonglesMode = LocalFlags.TwoDonglesMode;
                         flags.NrCorrectionPoints = LocalFlags.NrCorrectionPoints;
                         flags.BufferSize = LocalFlags.BufferSize;
 
                         InitBuffers();
+                        for (int i = 0; i < Flags.MAX_DONGLES_RTLSDR; i++)
+                            radioRtlSdr[i].Start();
+                        for (int i = 0; i < Flags.MAX_DONGLES_RSP1; i++)
+                            radioRSP1[i].Start();
 
-                        radio[0].Start();
-                        radio[1].Start();
                         StartDraw();
                     }
-
                 }
                 else
                 {
@@ -725,18 +868,16 @@ namespace PasiveRadar
                         flags.Columns != LocalFlags.Columns ||
                         flags.Rows != LocalFlags.Rows ||
                         flags.DopplerZoom != LocalFlags.DopplerZoom ||
-                        flags.TwoDonglesMode != LocalFlags.TwoDonglesMode ||
                         flags.OpenCL != LocalFlags.OpenCL ||
                         flags.NrCorrectionPoints != LocalFlags.NrCorrectionPoints)
                     {
                         StopAllThreads();
-                        radio[0].Stop();
-                        radio[1].Stop();
+                        radioRtlSdr[0].Stop();
+                        radioRtlSdr[1].Stop();
 
                         flags.Columns = LocalFlags.Columns;
                         flags.Rows = LocalFlags.Rows;
                         flags.DopplerZoom = LocalFlags.DopplerZoom;
-                        flags.TwoDonglesMode = LocalFlags.TwoDonglesMode;
                         flags.NrCorrectionPoints = LocalFlags.NrCorrectionPoints;
                         flags.scale_type = LocalFlags.scale_type;
                         flags.BufferSize = LocalFlags.BufferSize;
@@ -747,30 +888,15 @@ namespace PasiveRadar
             }
         }
 
-        private void RadarMode()
-        {
-            if (flags.showRadar || flags.showCorrelateWave0 || flags.showCorrelateFlow0)
-            {
-                //Reduce bandwith to the the highest working one
-                if (flags.rate[0] > 2560000) flags.rate[0] = 2560000;
-                //Set 1 and 2 radios to the same bandwith and buffer size
-                if (flags.rate[1] != flags.rate[0] || flags.frequency[1] != flags.frequency[0])
-                {
-                    //  StopAllThreads();
-                    flags.rate[1] = flags.rate[0];
-                    flags.frequency[1] = flags.frequency[0];
-                }
-            }
-        }
-
         private int RadioCount()
         {
             int count = 0;
+            for (int i = 0; i < Flags.MAX_DONGLES_RTLSDR; i++)
+            {
+                if (radioRtlSdr[i].status)
+                    count++;
+            }
 
-            if (radio[0].status)
-                count++;
-            if (radio[1].status)
-                count++;
             label3.Text = "Nr. recivers: " + count;
 
             if (count == 0)
@@ -783,26 +909,18 @@ namespace PasiveRadar
             return count;
         }
 
-        private void CorrelationSettings(Flags LocalFlags)
+        private void TranslationSettings(Flags LocalFlags)
         {
-            StopDraw();
-            lock (LockMem)
-            {
-                flags.Negative = LocalFlags.Negative;
-                flags.Positive = LocalFlags.Positive;
-                flags.AcceptedLevel = LocalFlags.AcceptedLevel;
-                flags.CorrelateAmplitude = LocalFlags.CorrelateAmplitude;
-                flags.CorrelateLevel = LocalFlags.CorrelateLevel;
-                flags.AutoCorrelate = LocalFlags.AutoCorrelate;
-            }
-            WindowsUpdate();//To correct the scale and so on
-            if (runing)
-                StartDraw();
+            flags.AmplitudeOfAccepterPoints = LocalFlags.AmplitudeOfAccepterPoints;
+            flags.NrPointsOfObject = LocalFlags.NrPointsOfObject;
+            flags.DistanceFrom0line = LocalFlags.DistanceFrom0line;
+            flags.AcceptedDistance = LocalFlags.AcceptedDistance;
+            flags.Integration = LocalFlags.Integration;
         }
 
-        void WindowsSetPressed(int Nr)
+        void WindowsSetPressed(int Nr, string type)
         {
-            UpdateSet(Nr);
+            UpdateSet(Nr, type);
             //  flags.Nr_active_radio=RadioCount();
 
         }
@@ -810,6 +928,65 @@ namespace PasiveRadar
         private void StopAllThreads()
         {
             StopDraw();
+        }
+
+
+
+        private void AddRadioSDRplay(int WindowRadio, int Reciver)
+        {
+            string str = "None";
+            lock (LockMem)
+            {
+                runing = false;
+                button1.ImageIndex = 0;
+                StopAllThreads();
+                if (radioRSP1[WindowRadio] != null)
+                {
+                    radioRSP1[WindowRadio].Stop();
+                    radioRSP1[WindowRadio].Close();
+                    //First check if other Radio posses the dongle (item) and free it
+                    for (int i = 0; i < Flags.MAX_DONGLES_RSP1; i++)
+
+                        if (radioRSP1[i].item == Reciver)
+                        {
+                            radioRSP1[i].Stop();
+                            radioRSP1[i].Close();
+                            findRSP1.StatusList[radioRSP1[i].item] = 0;
+                            //radioSDRplays[i].itm = 0;
+                            radioRSP1[i].item = 0;
+                            radio_window[i].label_Radio.Text = "None";
+                        }
+
+                    findRSP1.StatusList[radioRtlSdr[WindowRadio].item] = 0;//free the previously used dongle
+                    radioRSP1[WindowRadio].item = Reciver;// change entry in radio to the currrent
+                    radioRSP1[WindowRadio].dev_number = findRSP1.List[Reciver];
+                }
+                findRSP1.StatusList[Reciver] = 1;
+
+                if (Reciver > 0)
+                {
+                    if (radioRSP1[WindowRadio] != null)
+                    {
+                        radioRSP1[WindowRadio].BufferSize = (int)flags.BufferSize;
+                        radioRSP1[WindowRadio].frequency = (int)flags.frequency[WindowRadio];
+                        radioRSP1[WindowRadio].rate = (uint)flags.rate[WindowRadio];
+                        radioRSP1[WindowRadio].Open();
+
+                        if (radioRSP1[WindowRadio].status)
+                            str = "(" + Reciver + ") " + radioRSP1[WindowRadio].GetName();
+                    }
+                }
+                //RadioCount();
+            }
+            //Update lists in combo boxes
+            for (int i = 0; i < Flags.MAX_DONGLES_RSP1; i++)
+            {
+                setSDRplays[i].ComboBoxRadio_Update(ref findRSP1);
+                //Update parameters
+                setSDRplays[i].SetSettings(radioRSP1[i]);
+            }
+            //Set text in windowRadio
+            radio_window[WindowRadio].label_Radio.Text = str;
         }
 
         private void AddRadio(int WindowRadio, int Reciver)
@@ -820,103 +997,272 @@ namespace PasiveRadar
                 runing = false;
                 button1.ImageIndex = 0;
                 StopAllThreads();
-                if (radio[WindowRadio] != null)
+                if (radioRtlSdr[WindowRadio] != null)
                 {
-                    radio[WindowRadio].Stop();
-                    radio[WindowRadio].Close();
+                    radioRtlSdr[WindowRadio].Stop();
+                    radioRtlSdr[WindowRadio].Close();
                     //First check if other Radio posses the dongle (item) and free it
-                    for (int i = 0; i < Flags.MAX_DONGLES; i++)
+                    for (int i = 0; i < Flags.MAX_DONGLES_RTLSDR; i++)
 
-                        if (radio[i].item == Reciver)
+                        if (radioRtlSdr[i].item == Reciver)
                         {
-                            radio[i].Stop();
-                            radio[i].Close();
-                            find.StatusList[radio[i].item] = 0;
-                            set[i].itm = 0;
-                            radio[i].item = 0;
-                            rd[i].label_Radio.Text = "None";
+                            radioRtlSdr[i].Stop();
+                            radioRtlSdr[i].Close();
+                            findRtlSdr.StatusList[radioRtlSdr[i].item] = 0;
+                            setRtlSdr[i].itm = 0;
+                            radioRtlSdr[i].item = 0;
+                            radio_window[i].label_Radio.Text = "None";
                         }
 
-                    find.StatusList[radio[WindowRadio].item] = 0;//free the previously used dongle
-                    radio[WindowRadio].item = Reciver;// change entry in radio to the currrent
-                    radio[WindowRadio].dev_number = find.List[Reciver];
+                    findRtlSdr.StatusList[radioRtlSdr[WindowRadio].item] = 0;//free the previously used dongle
+                    radioRtlSdr[WindowRadio].item = Reciver;// change entry in radio to the currrent
+                    radioRtlSdr[WindowRadio].dev_number = findRtlSdr.List[Reciver];
                 }
-                find.StatusList[Reciver] = 1;
+                findRtlSdr.StatusList[Reciver] = 1;
 
                 if (Reciver > 0)
                 {
-                    if (radio[WindowRadio] != null)
+                    if (radioRtlSdr[WindowRadio] != null)
                     {
-                        radio[WindowRadio].BufferSize = (int)flags.BufferSize;
-                        radio[WindowRadio].frequency = (int)flags.frequency[WindowRadio];
-                        radio[WindowRadio].rate = (uint)flags.rate[WindowRadio];
-                        radio[WindowRadio].Open();
+                        radioRtlSdr[WindowRadio].BufferSize = (int)flags.BufferSize;
+                        radioRtlSdr[WindowRadio].frequency = (int)flags.frequency[WindowRadio];
+                        radioRtlSdr[WindowRadio].rate = (uint)flags.rate[WindowRadio];
+                        radioRtlSdr[WindowRadio].Open();
 
-                        if (radio[WindowRadio].status)
-                            str = "(" + Reciver + ") " + radio[WindowRadio].GetName();
+                        if (radioRtlSdr[WindowRadio].status)
+                            str = "(" + Reciver + ") " + radioRtlSdr[WindowRadio].GetName();
                     }
-
-
-
 
                 }
                 RadioCount();
             }
             //Update lists in combo boxes
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
+            for (int i = 0; i < Flags.MAX_DONGLES_RTLSDR; i++)
             {
-                set[i].ComboBoxRadio_Update(ref find);
+                setRtlSdr[i].ComboBoxRadio_Update(ref findRtlSdr);
                 //Update parameters
-                set[i].SetSettings(radio[i]);
+                setRtlSdr[i].SetSettings(radioRtlSdr[i]);
             }
             //Set text in windowRadio
-            rd[WindowRadio].label_Radio.Text = str;
+            radio_window[WindowRadio].label_Radio.Text = str;
         }
 
-        void UpdateSet(int n)
+        private void AddRadioSDR1(int WindowRadio, int Reciver)
         {
-
-            if (set[n].Visible == false)
+            string str = "None";
+            lock (LockMem)
             {
-                set[n].Show();
-                set[n].ComboBoxRadio_Update(ref find);
+                runing = false;
+                button1.ImageIndex = 0;
+                StopAllThreads();
+                if (radioRSP1[WindowRadio] != null)
+                {
+                    radioRSP1[WindowRadio].Stop();
+                    radioRSP1[WindowRadio].Close();
+                    //First check if other Radio posses the dongle (item) and free it
+                    for (int i = 0; i < Flags.MAX_DONGLES_RSP1; i++)
 
+                        if (radioRSP1[i].item == Reciver)
+                        {
+                            radioRSP1[i].Stop();
+                            radioRSP1[i].Close();
+                            findRSP1.StatusList[radioRSP1[i].item] = 0;
+                            // radioSDRplays[i].itm = 0;
+                            radioRSP1[i].item = 0;
+                            radio_window[i].label_Radio.Text = "None";
+                        }
+
+                    findRtlSdr.StatusList[radioRSP1[WindowRadio].item] = 0;//free the previously used dongle
+                    radioRSP1[WindowRadio].item = Reciver;// change entry in radio to the currrent
+                    radioRSP1[WindowRadio].dev_number = findRSP1.List[Reciver];
+                }
+                findRSP1.StatusList[Reciver] = 1;
+
+                if (Reciver > 0)
+                {
+                    if (radioRtlSdr[WindowRadio] != null)
+                    {
+                        radioRSP1[WindowRadio].BufferSize = (int)flags.BufferSize;
+                        radioRSP1[WindowRadio].frequency = (int)flags.frequency[WindowRadio + Flags.MAX_DONGLES_RTLSDR];
+                        radioRSP1[WindowRadio].rate = (uint)flags.rate[WindowRadio + Flags.MAX_DONGLES_RTLSDR];
+                        radioRSP1[WindowRadio].Open();
+
+                        if (radioRSP1[WindowRadio].status)
+                            str = "(" + Reciver + ") " + radioRSP1[WindowRadio].GetName();
+                    }
+
+                }
+                //  RadioCount();
             }
-            else
-                set[n].Visible = false;
+            //Update lists in combo boxes
+            for (int i = 0; i < Flags.MAX_DONGLES_RSP1; i++)
+            {
+                setSDRplays[i].ComboBoxRadio_Update(ref findRSP1);
+                //Update parameters
+                setSDRplays[i].SetSettings(radioRSP1[i]);
+            }
+            //Set text in windowRadio
+            radio_window[WindowRadio].label_Radio.Text = str;
         }
 
-        void ReturnRadioSettings(int Nr, int gain, uint _rate, bool AGC, bool MGC, bool ShiftOn, int shift, int sampling, bool dithering, bool StagesFlag, int[] StageGain)
+        void UpdateSet(int n, string type)
         {
-            if (radio[Nr] != null)
+            if (type == "RTLSDR")
+            {
+                if (setRtlSdr[n].Visible == false)
+                {
+                    setRtlSdr[n].Show();
+                    setRtlSdr[n].ComboBoxRadio_Update(ref findRtlSdr);
+                }
+                else
+                    setRtlSdr[n].Visible = false;
+            }
+            else if (type == "SDRPLAY")
+            {
+                n -= (int)Flags.MAX_DONGLES_RTLSDR;
+                if (setSDRplays[n].Visible == false)
+                {
+                    setSDRplays[n].Show();
+                    setSDRplays[n].ComboBoxRadio_Update(ref findRSP1);
+                }
+                else
+                    setSDRplays[n].Visible = false;
+            }
+        }
+
+        void ReturnRadioSettingsRtlSdr(int Nr, int gain, uint _rate, bool AGC, bool MGC, bool ShiftOn, int shift, int sampling, bool dithering, bool StagesFlag, int[] StageGain)
+        {
+            if (radioRtlSdr[Nr] != null)
             {
                 if (StagesFlag)
                 {
                     for (uint stage = 0; stage < 3; stage++)
-                        radio[Nr].SetTunerStageGain(stage, StageGain[stage]);
+                        radioRtlSdr[Nr].SetTunerStageGain(stage, StageGain[stage]);
                 }
                 else
-                    radio[Nr].SetGain(gain);
+                    radioRtlSdr[Nr].SetGain(gain);
 
-                radio[Nr].GainMode(MGC);
-                radio[Nr].AGCMode(AGC);
-                radio[Nr].SetDithering(dithering);
-                radio[Nr].SetSampleRate(_rate);
+                radioRtlSdr[Nr].GainMode(MGC);
+                radioRtlSdr[Nr].AGCMode(AGC);
+                radioRtlSdr[Nr].SetDithering(dithering);
+                radioRtlSdr[Nr].SetSampleRate(_rate);
 
                 flags.rate[Nr] = _rate;
 
-
                 if (ShiftOn)
-                    radio[Nr].SetFreqCorrection(shift);
+                    radioRtlSdr[Nr].SetFreqCorrection(shift);
                 else
-                    radio[Nr].SetFreqCorrection(0);
+                    radioRtlSdr[Nr].SetFreqCorrection(0);
 
-                radio[Nr].SetDirectSampling(sampling);
+                radioRtlSdr[Nr].SetDirectSampling(sampling);
             }
             UpdateFrequencies(Nr);
 
             //     flags.Nr_active_radio = RadioCount();
         }
+
+        void ReturnRadioSettingsRSP1(int Nr, int gain, uint rate, uint bandwith, uint IF_frequency, bool AGC, bool MGC, bool ShiftOn, int shift, int format, int gain_LNA, int gain_Mixer, int gain_Baseband, int transfer)
+        {
+            if (radioRSP1[Nr] != null)
+            {
+                int r;
+                //gain
+                if (!AGC)
+                {
+                    if (radioRSP1[Nr].gain != gain)
+                    {
+                        r = radioRSP1[Nr].SetTunerGein(gain);
+                        radioRSP1[Nr].GetLNAGain();
+                        radioRSP1[Nr].GetMixerGain();
+                        radioRSP1[Nr].GetBasebandGain();
+                    }
+                    else if (radioRSP1[Nr].gainLNA != gain_LNA)
+                    {
+                        r = radioRSP1[Nr].SetLNAGain(gain_LNA);
+                        radioRSP1[Nr].GetGain();
+                    }
+                    else if (radioRSP1[Nr].gainMixer != gain_Mixer)
+                    {
+                        r = radioRSP1[Nr].SetMixerGain(gain_Mixer);
+                        radioRSP1[Nr].GetGain();
+                    }
+                    else if (radioRSP1[Nr].gainBaseBand != gain_Baseband)
+                    {
+                        radioRSP1[Nr].SetBasebandGain(gain_Baseband);
+                        radioRSP1[Nr].GetGain();
+                    }
+                }
+
+                radioRSP1[Nr].SetCentralFreq();
+                radioRSP1[Nr].SetFreqCorrection(shift);
+                if (radioRSP1[Nr].IF_frequency != IF_frequency)
+                    radioRSP1[Nr].Set_if_frequency(IF_frequency);
+
+
+                //Memory sensitive functions/parameters
+                if (runing)
+                    if (radioRSP1[Nr].format != RadioRSP1.Sample_format(format) ||
+                        radioRSP1[Nr].bandwith != bandwith ||
+                        radioRSP1[Nr].rate != rate ||
+                        radioRSP1[Nr].transfer != transfer ||
+                        radioRSP1[Nr].gain_mode != AGC
+                        )
+                    {
+                        radioRSP1[Nr].Stop();
+
+                        Thread.Sleep(10);
+                        radioRSP1[Nr].ResetBuffer();
+
+                        if (radioRSP1[Nr].gain_mode != AGC)
+                            radioRSP1[Nr].Set_tuner_gain_mode(AGC);//Automatic manual gain mode
+
+
+                        if (radioRSP1[Nr].format != RadioRSP1.Sample_format(format))
+                            radioRSP1[Nr].Set_sample_format(format);
+
+                        if (radioRSP1[Nr].bandwith != bandwith)
+                        {
+                            radioRSP1[Nr].Set_bandwidth(bandwith);
+                            flags.bandwitch[Nr + Flags.MAX_DONGLES_RTLSDR] = bandwith;
+                        }
+
+                        if (radioRSP1[Nr].rate != rate)
+                        {
+                            radioRSP1[Nr].SetSampleRate(rate);
+                            flags.rate[Nr + Flags.MAX_DONGLES_RTLSDR] = rate;
+                        }
+
+                        if (radioRSP1[Nr].transfer != transfer)
+                            radioRSP1[Nr].Set_usb_transfer(transfer);
+
+                        Thread.Sleep(10);
+                        radioRSP1[Nr].Start();
+                    }
+                    else
+                    {
+                        radioRSP1[Nr].Set_bandwidth(bandwith);
+                        radioRSP1[Nr].Set_sample_format(format);
+                        radioRSP1[Nr].SetSampleRate(rate);
+                        flags.rate[Nr + Flags.MAX_DONGLES_RTLSDR] = rate;
+                        flags.bandwitch[Nr + Flags.MAX_DONGLES_RTLSDR] = bandwith;
+                        radioRSP1[Nr].Set_usb_transfer(transfer);
+                        radioRSP1[Nr].Set_tuner_gain_mode(AGC);//Automatic manual gain mode
+                        radioRSP1[Nr].Set_if_frequency(IF_frequency);
+                    }
+
+
+                if (ShiftOn)
+                    radioRSP1[Nr].SetFreqCorrection(shift);
+                else
+                    radioRSP1[Nr].SetFreqCorrection(0);
+
+                //send back the changes
+                setSDRplays[Nr].SetSettings(radioRSP1[Nr]);
+            }
+
+            UpdateFrequencies(Nr);
+        }
+
 
         void OnPowerChange(Object sender, Microsoft.Win32.PowerModeChangedEventArgs e)
         {
@@ -933,51 +1279,45 @@ namespace PasiveRadar
 
         void UpdateFrequencies(int Nr)
         {
-            if (radio == null) return;
+            if (radioRtlSdr == null) return;
 
             if (Nr == -1) Nr = flags.LastActiveWindowRadio;
             flags.LastActiveWindowRadio = Nr;
 
-            if (flags.FREQUENCY_EQUAL)
+            for (int i = 0; i < Flags.ALL_DONGLES; i++)
             {
-                for (int i = 0; i < Flags.MAX_DONGLES; i++)
-                {
-                    if (i != Nr) flags.frequency[i] = flags.frequency[Nr];
-                    rd[i].tuningNumber.frequency = (int)flags.frequency[Nr];
-                    rd[i].tuningNumber.Update_(false);
-                    radio[Nr].SetSampleRate((uint)flags.rate[Nr]);
-                }
-                // flags.rate[1] =  rd[1].rate = rd[0].rate;
-
+                radio_window[Nr].tuningNumber.frequency = (int)flags.frequency[Nr];
+                radio_window[Nr].tuningNumber.Update_(false);
             }
-            else
+
+            for (int i = 0; i < Flags.MAX_DONGLES_RTLSDR; i++)
             {
-                for (int i = 0; i < Flags.MAX_DONGLES; i++)
+                if (radioRtlSdr[i] != null)
                 {
-                    rd[Nr].tuningNumber.frequency = (int)flags.frequency[Nr];
-                    rd[Nr].tuningNumber.Update_(false);
+                    radioRtlSdr[i].frequency = (int)flags.frequency[i];
+                    radioRtlSdr[i].SetCentralFreq();
                 }
             }
 
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
+            if (radioRSP1 == null) return;
+            for (int i = 0; i < Flags.MAX_DONGLES_RSP1; i++)
             {
-                if (radio[i] != null)
+                if (radioRSP1[i] != null)
                 {
-                    radio[i].frequency = (int)flags.frequency[i];
-                    radio[i].SetCentralFreq();
+                    radioRSP1[i].frequency = (int)flags.frequency[i + Flags.MAX_DONGLES_RTLSDR];
+                    radioRSP1[i].SetCentralFreq();
                 }
             }
+
             WindowsLocation(-1);
             WindowsUpdate();
         }
 
         private void WindowsUpdate()
         {
-            windowRadar.Update(flags);
-            windowBackground.Update(flags);
-            windowCorrelateWave.Update(flags);
-            windowCorrelateFlow.Update(flags);
-
+            for (int i = 0; i < Flags.ALL_DONGLES; i++)
+                if (windowRadar[i] != null)
+                    windowRadar[i].Update(flags);
 
             if (FlagsDelegate != null)
                 FlagsDelegate(flags);
@@ -990,14 +1330,6 @@ namespace PasiveRadar
             if (!runing)
                 UpdateAllScenes();
         }
-
-
-        private void trackBar5_Scroll(object sender, EventArgs e)
-        {
-
-        }
-
-
 
         private void button5_Click(object sender, EventArgs e)
         {
@@ -1063,32 +1395,22 @@ namespace PasiveRadar
             {
                 button9.ImageIndex = 1;
                 flags.ButtonCorrelation = false;
-                correlateControl1.Visible = false;
+                translateControl1.Visible = false;
             }
             else
             {
                 button9.ImageIndex = 0;
                 flags.ButtonCorrelation = true;
-                correlateControl1.Visible = true;
+                translateControl1.Visible = true;
             }
-        }
-
-        private void buttonFrequencyEqual_Click(object sender, EventArgs e)
-        {
-            ButtonFreqEqual();
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
+            for (int i = 0; i < Flags.ALL_DONGLES; i++)
             {
-                rd[i].Show();
+                radio_window[i].Show();
             }
-        }
-
-        private void panelViewport2_Paint(object sender, PaintEventArgs e)
-        {
-
         }
 
         private void radarControl1_Load(object sender, EventArgs e)
@@ -1096,22 +1418,12 @@ namespace PasiveRadar
 
         }
 
-        //private void Form1_SizeChanged(object sender, EventArgs e)
-        //{
-
-        //}
-
         private void Form1_ResizeEnd(object sender, EventArgs e)
         {
             resizing = false;
             UpdateAllScenesWhenRunning();
-            // UpdateAllScenes();
+            WindowsUpdate();
         }
-
-        //private void Form1_SizeChanged(object sender, EventArgs e)
-        //{
-
-        //}
 
         private void Form1_ResizeBegin(object sender, EventArgs e)
         {
@@ -1135,22 +1447,41 @@ namespace PasiveRadar
 
         private void buttonSettings1_Click(object sender, EventArgs e)
         {
+            bool tmp_runing = runing;
+            StopAllThreads();
+            StopAllRadios();
+            runing = false;
+
+            //////////////////////////////////////////
             flags.Copy(save_flags1);
             if (FlagsDelegate != null)
                 FlagsDelegate(flags);
 
             System.Threading.Thread.Sleep(100);//wait for changes, not the best solution
             radarControl1.UpdateAllControls();
-            correlateControl1.UpdateAllControls();
+            translateControl1.UpdateAllControls();
             displayControl1.UpdateAllControls();
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
+            for (int i = 0; i < Flags.ALL_DONGLES; i++)
             {
-                rd[i].UpdateAllControls();
+                radio_window[i].UpdateAllControls();
             }
+            InitBuffers();
+            WindowsUpdate();
+            ////////////////////////////////////////////
+            if (tmp_runing)
+                runing = true;
+            StartAllRadios();
+            StartDraw();
         }
 
         private void buttonSettings2_Click(object sender, EventArgs e)
         {
+            bool tmp_runing = runing;
+            StopAllThreads();
+            StopAllRadios();
+            runing = false;
+
+            ////////////////////////////////////////////////
             flags.Copy(save_flags2);
             // UpdateFrequencies(flags.LastActiveWindowRadio);
             if (FlagsDelegate != null)
@@ -1158,12 +1489,72 @@ namespace PasiveRadar
 
             System.Threading.Thread.Sleep(100);
             radarControl1.UpdateAllControls();
-            correlateControl1.UpdateAllControls();
+            translateControl1.UpdateAllControls();
             displayControl1.UpdateAllControls();
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
+            for (int i = 0; i < Flags.ALL_DONGLES; i++)
             {
-                rd[i].UpdateAllControls();
+                radio_window[i].UpdateAllControls();
             }
+            InitBuffers();
+            WindowsUpdate();
+
+            if (tmp_runing)
+                runing = true;
+            StartAllRadios();
+            StartDraw();
+        }
+
+
+        private void splitContainer3_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+            //   UpdateAllScenesWhenRunning();
+        }
+
+        private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+            //  UpdateAllScenesWhenRunning();
+        }
+
+        private void splitContainer2_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+            //  UpdateAllScenesWhenRunning();
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            if (flags.ShowMap == false)
+            {
+                mMap = new Map();
+                mMap.Show();
+                if (mMap != null)
+                    mMap.CopyFlags(flags);
+                flags.ShowMap = true;
+            }
+            else
+            {
+                flags.ShowMap = false;
+                if (mMap != null)
+                    mMap.Close();
+            }
+        }
+
+        private void Form1_MaximumSizeChanged(object sender, EventArgs e)
+        {
+            resizing = false;
+            UpdateAllScenesWhenRunning();
+            WindowsUpdate();
+        }
+
+        private void panelViewport1_SizeChanged(object sender, EventArgs e)
+        {
+            resizing = false;
+        }
+
+        private void panelViewport1_ParentChanged(object sender, EventArgs e)
+        {
+            //resizing = false;
+            //UpdateAllScenesWhenRunning();
+            //WindowsUpdate();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -1181,37 +1572,47 @@ namespace PasiveRadar
             UpdateAllScenes();
         }
 
-        private void ButtonFreqEqual()
+        private void Form1_ClientSizeChanged(object sender, EventArgs e)
         {
-            if (flags.FREQUENCY_EQUAL == false)
-            {
-                buttonFrequencyEqual.ImageIndex = 0;
-                flags.FREQUENCY_EQUAL = true;
-                flags.rate[1] = flags.rate[0];
-            }
-            else
-            {
-                buttonFrequencyEqual.ImageIndex = 1;
-                flags.FREQUENCY_EQUAL = false;//?    
-            }
-            UpdateFrequencies(flags.LastActiveWindowRadio);
+            resizing = false;
+
+        }
+
+        private void splitContainer3_MouseUp(object sender, MouseEventArgs e)
+        {
+            UpdateAllScenesWhenRunning();
+        }
+
+        private void splitContainer2_MouseUp(object sender, MouseEventArgs e)
+        {
+            UpdateAllScenesWhenRunning();
+        }
+
+        private void splitContainer1_MouseUp(object sender, MouseEventArgs e)
+        {
+            UpdateAllScenesWhenRunning();
+        }
+
+        private void splitContainer4_MouseUp(object sender, MouseEventArgs e)
+        {
+            UpdateAllScenesWhenRunning();
         }
 
         private void button9_Click(object sender, EventArgs e)
         {
+
             if (flags.ButtonCorrelation)
             {
                 button9.ImageIndex = 1;
                 flags.ButtonCorrelation = false;
-                correlateControl1.Visible = false;
+                translateControl1.Visible = false;
             }
             else
             {
                 button9.ImageIndex = 0;
                 flags.ButtonCorrelation = true;
-                correlateControl1.Visible = true;
+                translateControl1.Visible = true;
             }
         }
-
     }
 }

@@ -7,9 +7,10 @@ namespace PasiveRadar
     {
         //Sending flags info to all clases
         public delegate void DelegateEvents(int Nr);
+        public delegate void DelegateEventsSettings(int Nr, string type);
         public static event DelegateEvents SizeChangedx;
-        public static event DelegateEvents RadioSet;
-        public static event DelegateEvents RadioFrequencyChanged;
+        public static event DelegateEventsSettings RadioSet;
+        public static event DelegateEventsSettings RadioFrequencyChanged;
 
         public delegate void DelegateMouse(int Nr, int x);
         public static event DelegateMouse RadioMouseDown;
@@ -22,33 +23,37 @@ namespace PasiveRadar
         private bool SET;
         private int Nr;
         public uint BufferSizeRadio;
-
+        public string type = "";  //Type of radio RTLSDR or SDRplay
         private bool listen_enabled = false;
         public bool radio_resize;
 
-        public WindowsRadio(int _Nr)
+        public WindowsRadio(int _Nr, string _type)
         {
             InitializeComponent();
+            type = _type;
+            Nr = (int)_Nr;
 
-            Nr = _Nr;
-            this.Text = "Radio " + Nr;
+            if (Nr > Flags.MAX_DONGLES_RTLSDR - 1)
+                this.Text = "Radio  " + Nr + "  RSP1 ";
+            else
+                this.Text = "Radio  " + Nr + "  RtlSdr ";
+
 
             //Get info from TuningNumber
             tuningNumber.DigitalNumberChange += new TuningNumber.MyDelegate(TuningNumberChanged);
         }
 
-
-
         private void TuningNumberChanged()
         {
             if (RadioFrequencyChanged != null)
-                RadioFrequencyChanged(Nr);
+                RadioFrequencyChanged(Nr, type);
         }
 
         private void splitContainer_SplitterMoved(object sender, SplitterEventArgs e)
         {
-            if (SizeChangedx != null)
-                SizeChangedx(Nr);
+            radio_resize = false;
+            //if (SizeChangedx != null)
+            //    SizeChangedx(Nr);
         }
 
         private void WindowsRadio_ResizeEnd(object sender, EventArgs e)
@@ -56,9 +61,6 @@ namespace PasiveRadar
             radio_resize = false;
             if (SizeChangedx != null)
                 SizeChangedx(Nr);
-
-
-
         }
 
         private void panelRadioWave_MouseDown(object sender, MouseEventArgs e)
@@ -82,7 +84,7 @@ namespace PasiveRadar
         private void button2_Click(object sender, EventArgs e)
         {
             if (RadioSet != null)
-                RadioSet(Nr);
+                RadioSet(Nr, type);
         }
 
         private void WindowsRadio_FormClosing(object sender, FormClosingEventArgs e)
@@ -115,7 +117,6 @@ namespace PasiveRadar
         {
             SendSettings();
         }
-
         void SendSettings()
         {
             if (!SET) return;
@@ -151,7 +152,6 @@ namespace PasiveRadar
             }
         }
 
-
         public void Initialize(Flags flags)
         {
             SET = false;
@@ -183,7 +183,6 @@ namespace PasiveRadar
             if (LocalFlags.BufferSizeRadio[Nr] == 4096) comboBox1.SelectedIndex = 4;
             if (LocalFlags.BufferSizeRadio[Nr] == 8192) comboBox1.SelectedIndex = 5;
 
-
             SET = true;
         }
 
@@ -201,9 +200,7 @@ namespace PasiveRadar
             comboBox1.Update();
 
             tuningNumber.Update_(false);
-
         }
-
 
         private void button1_Click(object sender, EventArgs e)
         {
@@ -248,9 +245,52 @@ namespace PasiveRadar
                 SizeChangedx(Nr);
         }
 
-        private void WindowsRadio_Paint(object sender, PaintEventArgs e)
+        private void splitContainer1_SizeChanged(object sender, EventArgs e)
         {
+            radio_resize = false;
+            //if (SizeChangedx != null)
+            //    SizeChangedx(Nr);
+        }
 
+        private void splitContainer2_SizeChanged(object sender, EventArgs e)
+        {
+            radio_resize = false;
+            //if (SizeChangedx != null)
+            //    SizeChangedx(Nr);
+        }
+
+        private void splitContainer_Resize(object sender, EventArgs e)
+        {
+            radio_resize = true;
+        }
+
+        private void splitContainer_SizeChanged(object sender, EventArgs e)
+        {
+            radio_resize = false;
+        }
+
+        private void splitContainer1_SplitterMoving(object sender, SplitterCancelEventArgs e)
+        {
+            radio_resize = true;
+        }
+
+        private void splitContainer2_SplitterMoving(object sender, SplitterCancelEventArgs e)
+        {
+            radio_resize = true;
+        }
+
+        private void splitContainer1_MouseUp(object sender, MouseEventArgs e)
+        {
+            radio_resize = false;
+            if (SizeChangedx != null)
+                SizeChangedx(Nr);
+        }
+
+        private void splitContainer2_MouseUp(object sender, MouseEventArgs e)
+        {
+            radio_resize = false;
+            if (SizeChangedx != null)
+                SizeChangedx(Nr);
         }
     }
 }

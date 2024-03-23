@@ -10,9 +10,10 @@ using System.Windows;
 
 namespace PasiveRadar
 {
-    public unsafe class Dll
+    public unsafe class Dll_RtlSdr
     {
         private IntPtr pnt;
+        public IntPtr ctx = IntPtr.Zero;  //Libusb context
 
         [System.Runtime.InteropServices.DllImport(@"rtlsdr.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern char* rtlsdr_get_device_name(int index);
@@ -20,7 +21,7 @@ namespace PasiveRadar
         [System.Runtime.InteropServices.DllImport(@"rtlsdr.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int rtlsdr_get_device_count();
 
-[System.Runtime.InteropServices.DllImport(@"rtlsdr.dll", CallingConvention = CallingConvention.Cdecl)]
+        [System.Runtime.InteropServices.DllImport(@"rtlsdr.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int rtlsdr_get_device_usb_strings(uint devIndex, StringBuilder str1, StringBuilder str2, StringBuilder str3);
 
         [System.Runtime.InteropServices.DllImport(@"rtlsdr.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -125,10 +126,11 @@ namespace PasiveRadar
         [System.Runtime.InteropServices.DllImport(@"rtlsdr.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int rtlsdr_read_sync(IntPtr dev, IntPtr str, int lenght, ref int readed);
 
+        //[System.Runtime.InteropServices.DllImport(@"rtlsdr.dll", CallingConvention = CallingConvention.Cdecl)]
+        //public static extern IntPtr rtlsdr_get_LibUSBcontext();
+
         [System.Runtime.InteropServices.DllImport(@"rtlsdr.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr rtlsdr_get_version();
-
-
 
         //c# accesed functions
 
@@ -138,24 +140,23 @@ namespace PasiveRadar
 
             string[] rtlsdr_tuner = new string[]
             {
-	            "UNKNOWN",
-	            "E4000",
-	            "FC0012",
-	            "FC0013",
-	            "FC2580",
-	            "R820T",
-	            "R828D"
+                "UNKNOWN",
+                "E4000",
+                "FC0012",
+                "FC0013",
+                "FC2580",
+                "R820T",
+                "R828D"
             };
 
             int index = rtlsdr_get_tuner_type(dev);
             return rtlsdr_tuner[index];
         }
 
-  
-        public int get_device_count()
-        {
-            return rtlsdr_get_device_count();
-        }
+        //public void LibUSBcontext()
+        //{
+        //    ctx = rtlsdr_get_LibUSBcontext();
+        //}
 
         /*checked
          * Get USB device strings.
@@ -209,9 +210,15 @@ namespace PasiveRadar
          */
         public int open(ref IntPtr dev, int devIndex)
         {
+            int r;
+
             try
             {
-                return rtlsdr_open(ref dev, devIndex);
+                r = rtlsdr_open(ref dev, devIndex);
+                //if ( ctx == IntPtr.Zero)
+                //     LibUSBcontext();
+                return r;
+
             }
             catch (Exception ex)
             {
@@ -219,14 +226,16 @@ namespace PasiveRadar
                 MessageBox.Show(str);
                 return -1;
             }
-         
         }
 
         public int close(IntPtr dev)
         {
+            int r;
             if (dev != IntPtr.Zero)
             {
-                return rtlsdr_close(dev);
+                r = rtlsdr_close(dev);
+                dev = IntPtr.Zero;
+                return r;
             }
             return 0;
         }
@@ -671,11 +680,24 @@ namespace PasiveRadar
             return rtlsdr_reset_buffer(dev);
         }
 
-         public int read_sync(IntPtr dev, ref byte[] data, int lenght, ref int readed)
+        public int read_sync(IntPtr dev, ref Int16[] data, int lenght, ref int readed)
         {
             int r = rtlsdr_read_sync(dev, pnt, lenght, ref readed);
+            byte[] tmp = new byte[lenght];
 
-            Marshal.Copy(pnt, data, 0, lenght);
+            Marshal.Copy(pnt, tmp, 0, lenght);
+
+            //rotate
+            rotate_180(tmp);//fast
+
+            //convert to int
+            for (int i = 0; i < lenght; i++)
+            {
+                data[i] = tmp[i];
+                data[i] -= 127;
+                data[i] <<= 4;  //increase signal
+            }
+
             return r;
         }
 
@@ -703,6 +725,24 @@ namespace PasiveRadar
             //The main data buffer is in byte format so no worry about the size
             pnt = Marshal.AllocHGlobal(lenght);
 
+        }
+
+        void rotate_180(byte[] buf)
+        /* 180 rotation is 1+0j, 
+               0  1   2   3   4  5   6   7
+           or [0, 1; -2, -3;  4, 5; -6, -7] */
+
+        {
+            uint a;
+            for (uint i = 0; i < buf.Length - 7; i += 8)
+            {
+                /* uint8_t negation = 255 - x */
+                buf[a = i + 2] = (byte)(255 - buf[a]);
+                buf[a = i + 3] = (byte)(255 - buf[a]);
+
+                buf[a = i + 6] = (byte)(255 - buf[a]);
+                buf[a = i + 7] = (byte)(255 - buf[a]);
+            }
         }
     }
 }

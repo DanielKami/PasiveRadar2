@@ -11,7 +11,7 @@ namespace PasiveRadar
 
         SpriteBatch spriteBatch = null;
         Texture2D texture = null;
-        GraphicsHelper graphisc = new GraphicsHelper();
+        readonly GraphicsHelper graphisc = new GraphicsHelper();
         public GraphicsDeviceService service;
         BasicEffect mSimpleEffect;
         SpriteFont spriteFont;
@@ -36,23 +36,24 @@ namespace PasiveRadar
         private float ScaleX_round;
         private float PixelsXToStart;
         private float stepX;
-        private  float ScaleStepX;
-        private float midle;
+        private float ScaleStepX;
+        //private float midle;
         private double PointedFrequency;
         private int Up;
         private int st;
+        private int col_tab_size;
         private float ScaleX_delta;
-        private float HalfHight;
-        private float ft;
-        private float ColHeight;
-        private float step_y;
+        // private float HalfHight;
+        //private float ft;
+        //private float ColHeight;
+        // private float step_y;
         private float scale_step;
         private Color[] ColorScale;
         private Vector2[] ColorScaleV;
         public void ScaleXPrepare(Panel panelViewport, Color[] UserColorTable)
         {
 
-            HalfHight = (panelViewport.Height - BottomMargin - TopMargin) / 2;
+            //HalfHight = (panelViewport.Height - BottomMargin - TopMargin) / 2;
             ActivePlotAreaX = panelViewport.Width - LeftMargin - RightMargin;
             ActivePlotAreaY = panelViewport.Height - TopMargin - BottomMargin;
 
@@ -75,22 +76,23 @@ namespace PasiveRadar
             PixelsXToStart = ActivePlotAreaX / 2 - ScaleX_delta * MHz_perPixel + LeftMargin;
             stepX = (float)Math.Round(100.0 / MHz_perPixel, 1);
             ScaleStepX = stepX * MHz_perPixel;
-            midle = LeftMargin + ft * BufferSize / 2;
+            //midle = LeftMargin + ft * BufferSize / 2;
             ///////////////////////////////////////////////////////////////////////////////////////////
 
-            ColHeight = 1.0f * (ActivePlotAreaY) / 100;
-            ft = 1.0f * ActivePlotAreaX / BufferSize;
+            //ColHeight = 1.0f * (ActivePlotAreaY) / 100;
+            //ft = 1.0f * ActivePlotAreaX / BufferSize;
             PointedFrequency = (frequency - rate * 0.5) / 1000000;
 
             Up = (int)(1000 / (Gain + 1));
             st = Up / 15;
             if (st < 1) st = 1;
-            step_y = 1.0f * HeightBootom / Up;
+            //step_y = 1.0f * HeightBootom / Up;
 
             data_frame = (float)(1.0 * BufferSize / ActivePlotAreaX);
 
             scale_step = Flags.ColorTableSize / ActivePlotAreaY;
 
+            col_tab_size = Flags.ColorTableSize - 1;
             ColorScale = new Color[(int)ActivePlotAreaY];
             ColorScaleV = new Vector2[(int)ActivePlotAreaY];
 
@@ -129,8 +131,7 @@ namespace PasiveRadar
 
         public void Scene(Panel panelViewport, double[] data)
         {
-            int Max_col = 0;
-            int col = 0;
+            int Max_col;
             Vector2 p;
             int step;
 
@@ -159,25 +160,23 @@ namespace PasiveRadar
                     Max_col = -100000;
                     for (int i = 0; i < data_frame; i++)
                     {
-                        col = (int)(data[i + step]);
+                        int col = (int)(data[i + step]);
                         if (col > Max_col) Max_col = col;
                     }
                     p.X = j + LeftMargin;
-                    Max_col *= 18;
+                    Max_col <<= 2;
                     Max_col += Level + 1000;
 
                     if (Max_col < 0) Max_col = 0;
-                    if (Max_col > Flags.ColorTableSize-1) Max_col = Flags.ColorTableSize-1;
+                    if (Max_col > col_tab_size) Max_col = col_tab_size;
 
                     graphisc.Point(p, ColorTable[Max_col]);
                 }
             }
-
             spriteBatch.End();
 
             Color BackC = Color.FromNonPremultiplied(new Vector4(0.0f, 0.0f, 0, .05f));
             graphisc.FiledRectangle(service, mSimpleEffect, new Vector2(0, HeightBootom - 10), panelViewport.Width, BottomMargin, BackC, BackC);
-
 
             //copy the shadowMap1 to shadowMap2 long way
             graphicsDevice.SetRenderTarget(null);
@@ -201,7 +200,6 @@ namespace PasiveRadar
             spriteBatch.End();
         }
 
-
         public void ScaleXflow(float Width, float Height)
         {
             float x, y;
@@ -209,8 +207,7 @@ namespace PasiveRadar
 
             for (int i = -120; i < 120; i++)
             {
-
-                x = (float)(PixelsXToStart + ScaleStepX * i) ;
+                x = (float)(PixelsXToStart + ScaleStepX * i);
                 if (x > LeftMargin && x < WithRight)
                 {
                     drawString = "" + (ScaleX_round + i * stepX).ToString("0.00");
@@ -223,7 +220,6 @@ namespace PasiveRadar
             }
 
             graphisc.Line(service, mSimpleEffect, new Vector2(LeftMargin, HeightBootom), new Vector2(WithRight, HeightBootom), graphisc.white);
-
 
             float CursorPos = (float)((FrequencyAtPointedLocation - PointedFrequency) * MHz_perPixel + LeftMargin);
             if (CursorPos >= LeftMargin && CursorPos <= WithRight)

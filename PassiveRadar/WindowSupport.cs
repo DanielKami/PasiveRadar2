@@ -34,6 +34,9 @@ namespace PasiveRadar
             spriteBatch = new SpriteBatch(service.GraphicsDevice);
             spriteFont = content.Load<SpriteFont>("ft");
             service.ResetDevice(panelViewport.Width, panelViewport.Height);
+
+
+
         }
 
         protected void mWinForm_DeviceResetting(Object sender, EventArgs e)
@@ -68,6 +71,8 @@ namespace PasiveRadar
             service.GraphicsDevice.Viewport.Height, 0,    // bottom, top
             0, 1);
 
+            service.GraphicsDevice.PresentationParameters.PresentationInterval = PresentInterval.Two;
+
             //Recreate bath
             spriteBatch = new SpriteBatch(service.GraphicsDevice);
 
@@ -93,11 +98,11 @@ namespace PasiveRadar
                     int Width, Height;
                     //if (panelViewport.Width < 1) Width = 1;
                     //else
-                        Width = panelViewport.Width;
+                    Width = panelViewport.Width;
 
                     //if (panelViewport.Height < 1) Height = 1;
                     //else
-                        Height = panelViewport.Height;
+                    Height = panelViewport.Height;
 
                     service.CreateDevice(panelViewport.Handle, Width, Height);
                     service.ResetDevice(Width, Height);

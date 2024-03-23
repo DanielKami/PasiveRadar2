@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace PasiveRadar
@@ -87,9 +84,9 @@ namespace PasiveRadar
             {
                 Array.Copy(temp_taps, f_taps, num_taps);
 
-                for(int i=0; i<taps;i++)
+                for (int i = 0; i < taps; i++)
                 {
-                    i_taps[i] = (int)f_taps[i]*100;
+                    i_taps[i] = (int)f_taps[i] * 100;
                 }
             }
             return "Ok";
@@ -245,7 +242,7 @@ namespace PasiveRadar
         }
 
         //dataIn.Lenght=dataOutLenght
-        public void FiltratePrimitiveFast(float[] dataIn, float[] dataOut, int size=0)
+        public void FiltratePrimitiveFast(float[] dataIn, float[] dataOut, int size = 0)
         {
             if (old_data == null) return;
             if (size == 0) size = dataIn.Length;
@@ -368,7 +365,7 @@ namespace PasiveRadar
         {
 
             //Extend the operation data of on tap beginning
-           int[] extended_data = new int[dataIn.Length + two_taps + 1];
+            int[] extended_data = new int[dataIn.Length + two_taps + 1];
 
             //Add the old data first lenght of taps -1. -1 becouse the first point has to be from the new data set
             Array.ConstrainedCopy(old_dataInt, 0, extended_data, 0, two_taps);

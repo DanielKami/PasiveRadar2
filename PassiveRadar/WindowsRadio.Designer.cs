@@ -34,7 +34,6 @@
             this.splitContainer = new System.Windows.Forms.SplitContainer();
             this.panelRadioFlow = new System.Windows.Forms.Panel();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.tuningNumber = new PasiveRadar.TuningNumber();
             this.button1 = new System.Windows.Forms.Button();
             this.imageList1 = new System.Windows.Forms.ImageList(this.components);
             this.button2 = new System.Windows.Forms.Button();
@@ -56,6 +55,7 @@
             this.trackBar1 = new System.Windows.Forms.TrackBar();
             this.checkBox2 = new System.Windows.Forms.CheckBox();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.tuningNumber = new PasiveRadar.TuningNumber();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
             this.splitContainer.Panel1.SuspendLayout();
             this.splitContainer.Panel2.SuspendLayout();
@@ -99,6 +99,8 @@
             // 
             this.splitContainer.Panel2.Controls.Add(this.panelRadioFlow);
             this.splitContainer.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.splitContainer_SplitterMoved);
+            this.splitContainer.SizeChanged += new System.EventHandler(this.splitContainer_SizeChanged);
+            this.splitContainer.Resize += new System.EventHandler(this.splitContainer_Resize);
             // 
             // panelRadioFlow
             // 
@@ -118,13 +120,6 @@
             this.panel1.Controls.Add(this.label_Radio);
             resources.ApplyResources(this.panel1, "panel1");
             this.panel1.Name = "panel1";
-            // 
-            // tuningNumber
-            // 
-            this.tuningNumber.BackColor = System.Drawing.SystemColors.Control;
-            this.tuningNumber.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
-            resources.ApplyResources(this.tuningNumber, "tuningNumber");
-            this.tuningNumber.Name = "tuningNumber";
             // 
             // button1
             // 
@@ -170,6 +165,9 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.splitContainer2);
+            this.splitContainer1.SplitterMoving += new System.Windows.Forms.SplitterCancelEventHandler(this.splitContainer1_SplitterMoving);
+            this.splitContainer1.SizeChanged += new System.EventHandler(this.splitContainer1_SizeChanged);
+            this.splitContainer1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.splitContainer1_MouseUp);
             // 
             // splitContainer2
             // 
@@ -184,6 +182,9 @@
             // splitContainer2.Panel2
             // 
             this.splitContainer2.Panel2.Controls.Add(this.splitContainer);
+            this.splitContainer2.SplitterMoving += new System.Windows.Forms.SplitterCancelEventHandler(this.splitContainer2_SplitterMoving);
+            this.splitContainer2.SizeChanged += new System.EventHandler(this.splitContainer2_SizeChanged);
+            this.splitContainer2.MouseUp += new System.Windows.Forms.MouseEventHandler(this.splitContainer2_MouseUp);
             // 
             // flowLayoutPanel1
             // 
@@ -299,10 +300,18 @@
             this.checkBox1.UseVisualStyleBackColor = true;
             this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
+            // tuningNumber
+            // 
+            this.tuningNumber.BackColor = System.Drawing.SystemColors.Control;
+            this.tuningNumber.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
+            resources.ApplyResources(this.tuningNumber, "tuningNumber");
+            this.tuningNumber.Name = "tuningNumber";
+            // 
             // WindowsRadio
             // 
             resources.ApplyResources(this, "$this");
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoValidate = System.Windows.Forms.AutoValidate.EnablePreventFocusChange;
             this.Controls.Add(this.splitContainer1);
             this.DoubleBuffered = true;
             this.Name = "WindowsRadio";
@@ -311,7 +320,6 @@
             this.Load += new System.EventHandler(this.WindowsRadio_Load);
             this.ResizeBegin += new System.EventHandler(this.WindowsRadio_ResizeBegin);
             this.ResizeEnd += new System.EventHandler(this.WindowsRadio_ResizeEnd);
-            this.Paint += new System.Windows.Forms.PaintEventHandler(this.WindowsRadio_Paint);
             this.Resize += new System.EventHandler(this.WindowsRadio_Resize);
             this.splitContainer.Panel1.ResumeLayout(false);
             this.splitContainer.Panel2.ResumeLayout(false);

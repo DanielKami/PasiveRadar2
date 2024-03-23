@@ -48,19 +48,14 @@ namespace PasiveRadar
             //Add the new image to storage
             if (AddEveryIndex == AddEvery)
             {
-                //  if (InpArray.Length < Lenght * Index + Lenght)
-                //     return;
-                //Array.Copy(InpArray, 0, StorageArray, Lenght * Index, Lenght);
                 if (Column * Rows * (NrElements + 1) == StorageArray.Length)
-                    System.Buffer.BlockCopy(InpArray, 0, StorageArray, (int)(sizeof(float) * InpArray.Length * Index), (int)(sizeof(float) * InpArray.Length));
+                    System.Buffer.BlockCopy(InpArray, 0, StorageArray, InpArray.Length * (int)Index * sizeof(float), (int)(sizeof(float) * InpArray.Length));
                 AddEveryIndex = 0;
 
                 //Change the index of added elements
                 Index++;
                 if (Index > NrElements)
-                {
                     Index = 0;
-                }
 
                 //Do the hard work
                 LinearRegresion();

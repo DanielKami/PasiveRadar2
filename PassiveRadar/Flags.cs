@@ -8,28 +8,32 @@ namespace PasiveRadar
 {
     public class Flags
     {
-        public const string version = "v. 1.6";
-        public const uint MAX_DONGLES = 2;
+        public const string version = "v. 2.2";   //version of Radar
+        public const uint MAX_DONGLES_RTLSDR = 3;        //Number of suportet dongles (the number can be bigger but for radar it is no really sense)
+        public const uint MAX_DONGLES_RSP1 = 1;      //Is a Miri 2500 device present
+        public const uint ALL_DONGLES = MAX_DONGLES_RTLSDR + MAX_DONGLES_RSP1;
         public const uint MAX_DEVICE_NAME = 256;  //number of characters dedicated to the name of CUDA device
-        public const int ColorTableSize = 1024;
-
+        public const int ColorTableSize = 1024;   //Size of color table
+        public const uint FramePerSec = 39;       //Integrated Graphics card frames/s (radar and radio windows drawing)
         public Flags()
         {
-            rate = new float[MAX_DONGLES];
-            frequency = new double[MAX_DONGLES];
-            Amplification = new int[MAX_DONGLES];
-            Cumulation = new uint[MAX_DONGLES];
-            Level = new int[MAX_DONGLES];
-            showRadioWave = new bool[MAX_DONGLES];
-            showRadioFlow = new bool[MAX_DONGLES];
-            FilterCentralFreq = new float[MAX_DONGLES];
-            BufferSizeRadio = new uint[MAX_DONGLES];
-
+            rate = new float[ALL_DONGLES];
+            bandwitch = new uint[ALL_DONGLES];
+            frequency = new double[ALL_DONGLES];
+            Amplification = new int[ALL_DONGLES];
+            Cumulation = new uint[ALL_DONGLES];
+            Level = new int[ALL_DONGLES];
+            showRadioWave = new bool[ALL_DONGLES];
+            showRadioFlow = new bool[ALL_DONGLES];
+            FilterCentralFreq = new float[ALL_DONGLES];
+            BufferSizeRadio = new uint[ALL_DONGLES];
+            showRadar = new bool[ALL_DONGLES];
 
             //Flags general
-            for (int i = 0; i < MAX_DONGLES; i++)
+            for (int i = 0; i < ALL_DONGLES; i++)
             {
-                rate[i] = 2400000;                             //Bit rate of the IF from reciver
+                rate[i] = 3200000;                             //Bit rate of the IF from reciver
+                bandwitch[i] = 8000000;                        //Bandwith filter
                 frequency[i] = 102800000;                      //Frequency of  dongle 
                 Amplification[i] = 37;                         //Amplification of data in view from radio i
                 Level[i] = 0;                                  //Level of data for average in view  from radio i
@@ -37,35 +41,45 @@ namespace PasiveRadar
                 showRadioWave[i] = true;
                 showRadioFlow[i] = true;
                 FilterCentralFreq[i] = 0;
-                BufferSizeRadio[i] = 1024;
+                BufferSizeRadio[i] = 512;
             }
 
             ColorThemeTable = new Microsoft.Xna.Framework.Color[ColorTableSize];
 
         }
 
+        //Map
+        public bool ShowMap = false;
+        public int NrPointsOfObject = 10;                       //number of object pixels to be accepted
+        public int AmplitudeOfAccepterPoints = 1000;            //minimum pixel value to be accepted
+        public int AcceptedDistance = 1;
+        public int DistanceFrom0line = 1;                       //omit points for signal search which are close to the 0 line (usually intensive)
+        public bool Integration = false;                        //integration true with weighs/ false only geometrical
+                                                                // public float AcceptedDistance = 0.01f;                   //Accepted distance between calculated points on the map from different towers, in km
+
         //Flags general
-        public bool FREQUENCY_EQUAL = true;                     //Both frquencies are equal
-        public int volume = 1;                                  //Audio volume amplification
         public int ColorTheme = 0;                              //Color them for flow and radar screens
         public bool AMDdriver = false;                          //State if AMD driver is installed
 
         //Flag related to radio
-        public float[] rate;                                   //Bit rate of the IF from reciver
+        public float[] rate;                                    //Bit rate of the IF from reciver
+        public uint[] bandwitch;
         public double[] frequency;                              //Frequency of  dongle
         public int[] Amplification;                             //Amplification of data in view from radio i
-        public uint[] Cumulation = new uint[MAX_DONGLES];       //Number of cumulations wave and flow radio window
-        public int[] Level = new int[MAX_DONGLES];              //Level of background in flow window
+        public uint[] Cumulation = new uint[ALL_DONGLES];       //Number of cumulations wave and flow radio window
+        public int[] Level = new int[ALL_DONGLES];              //Level of background in flow window
         public bool[] showRadioWave;
         public bool[] showRadioFlow;
         public int LastActiveWindowRadio = 0;                   //Last use window radio numer
         public int Nr_active_radio = 0;                         //Number of active radio recivers
-        public int Radio_buffer_size = 3;                       //The small buffer size to read dongle data is in form 2^buffer_Size * 1024
+        public uint Radio_buffer_size = 5;                       //The small buffer size to read dongle data is in form 2^buffer_Size * 1024
+        public bool format8_16 = false;                         //Data format 8bit/16bit. important for radar   (to divide the signal on float to high amplitude  
+
 
         //Flags related to radar
         public uint[] BufferSizeRadio;                          //Buffer for FFT   of radio
-        public uint BufferSize = 1024 * 256;                      //Buffer for FFT   of radar                            
-        public bool remove_symetrics = false;                         //Flag indicate if the symetric signals in radar has to be removed
+        public uint BufferSize = 1024 * 256;                    //Buffer for FFT   of radar                            
+        public bool remove_symetrics = false;                   //Flag indicate if the symetric signals in radar has to be removed
         public int average = 5;                                 //Average Radar frames over specified number
         public short scale_type = 0;                            //sygnal scale in radar 0-lin, 1-sqrt, 2-log
         public uint MaxAverage = 40;                            //Maximum frame average for radar
@@ -73,27 +87,19 @@ namespace PasiveRadar
         public float PasiveGain = 5;                            //Gain of the ambiguity function
         public uint Columns = 100;                              //Screen columns
         public uint Rows = 200;                                 //Screen rows
-        public bool TwoDonglesMode = true;                      //Turn on the mix mode GPU CPU
         public bool OpenCL = false;                             //Turn on/off openCL calculations
         public int DistanceShift = 0;                           //Task divider between GPU and CPU for rows calculations in ambiguity function. CPU task is CPU_GPU_task_ratio and GPU is 1.0-CPU_GPU_task_ratio
         public bool CorrectBackground = false;                  //Correct radar background
-        public bool FreezeBackground = false;                    //Freze the recorded background with out updating it
+        public bool FreezeBackground = false;                   //Freze the recorded background with out updating it
+        public uint NrReduceRows = 2;
 
         public int NrCorrectionPoints = 10;                     //Nr of points used for correction in regresion
         public int ColectEvery = 10;                            //Colect correction points every .... points
         public float CorectionWeight = 0.5f;                    //Corection weight
         public string DeviceName;
-        public byte alpha = 255;                                 //color alpha of the Radar screen
+        public byte alpha = 255;                                //color alpha of the Radar screen
 
-        ////Flags related to correlation
-        public const uint PositiveMax = 50000;                             //Correlation serch in positive direction
-        public const uint NegativeMax = 50000;
-        public uint Positive = 8000;                             //Correlation serch in positive direction
-        public uint Negative = 8000;                             //Correlation serch in negative direction
-        public double AcceptedLevel = 0.9;                      //Correlation level of acceptance
-        public int CorrelateLevel = -1000;                      //Corelate flow map level
-        public int CorrelateAmplitude = 2300;                   //Corelate flow map amplitude
-        public bool AutoCorrelate = true;
+
 
         //Flags related to sound
         public List<string> SoundDevices;                       //List of available sound devices
@@ -113,9 +119,8 @@ namespace PasiveRadar
         public bool ButtonCorrelation = true;                   //Side menu correlation settings (true- menu closed, false menu open)
 
         //Flags related to display
-        public bool showRadar = true;                          //Show data in view control 2
-        public bool showCorrelateWave0 = true;                  //Show correlation data 
-        public bool showCorrelateFlow0 = true;                  //Show correlation data flow shifted to 0
+        public bool[] showRadar;                           //Show data in view control 2
+
         public bool showBackground = false;                     //Show data in view control 3
 
         public int refresh_delay = 0;                           //Dead time between video frames calculations in ms to save procesor power
@@ -135,13 +140,14 @@ namespace PasiveRadar
 
         public void Copy(Flags NewFlags)
         {
-            for (int i = 0; i < MAX_DONGLES; i++)
+            for (int i = 0; i < ALL_DONGLES; i++)
             {
-                rate[i] = NewFlags.rate[i];                             //Bit rate of the IF from reciver
-                frequency[i] = NewFlags.frequency[i];                      //Frequency of  dongle 
-                Amplification[i] = NewFlags.Amplification[i];                         //Amplification of data in view from radio i
-                Level[i] = NewFlags.Level[i];                                  //Level of data for average in view  from radio i
-                Cumulation[i] = NewFlags.Cumulation[i];                             //Cumulation of data for average in view from radio i
+                rate[i] = NewFlags.rate[i];                      //Bit rate of the IF from reciver
+                bandwitch[i] = NewFlags.bandwitch[i];            //filters bandwitch
+                frequency[i] = NewFlags.frequency[i];            //Frequency of  dongle 
+                Amplification[i] = NewFlags.Amplification[i];    //Amplification of data in view from radio i
+                Level[i] = NewFlags.Level[i];                    //Level of data for average in view  from radio i
+                Cumulation[i] = NewFlags.Cumulation[i];          //Cumulation of data for average in view from radio i
                 showRadioWave[i] = NewFlags.showRadioWave[i];
                 showRadioFlow[i] = NewFlags.showRadioFlow[i];
                 FilterCentralFreq[i] = NewFlags.FilterCentralFreq[i];
@@ -150,36 +156,29 @@ namespace PasiveRadar
             Radio_buffer_size = NewFlags.Radio_buffer_size;
 
             //Flags related to radar
-            BufferSizeRadio = NewFlags.BufferSizeRadio;                           //Buffer for FFT   of radio
-            BufferSize = NewFlags.BufferSize;                                     //Buffer for FFT   of radar                            
-            remove_symetrics = NewFlags.remove_symetrics;                         //Flag indicate if the symetric signals in radar has to be removed
-            average = NewFlags.average;                                           //Average Radar frames over specified number
-            scale_type = NewFlags.scale_type;                                     //sygnal scale in radar 0-lin, 1-sqrt, 2-log
-            MaxAverage = NewFlags.MaxAverage;                                     //Maximum frame average for radar
-            DopplerZoom = NewFlags.DopplerZoom;                                   //Distance zoom in pasive radar
-            PasiveGain = NewFlags.PasiveGain;                                     //Gain of the ambiguity function
-            Columns = NewFlags.Columns;                                           //Screen columns
-            Rows = NewFlags.Rows;                                                 //Screen rows
-            TwoDonglesMode = NewFlags.TwoDonglesMode;                             //Turn on the mix mode GPU CPU
-            OpenCL = NewFlags.OpenCL;                                             //Turn on/off openCL calculations
-            DistanceShift = NewFlags.DistanceShift;                               //Task divider between GPU and CPU for rows calculations in ambiguity function. CPU task is CPU_GPU_task_ratio and GPU is 1.0-CPU_GPU_task_ratio
-            CorrectBackground = NewFlags.CorrectBackground;                       //Correct radar background
-            FreezeBackground = NewFlags.FreezeBackground;                         //Freze the recorded background with out updating it
+            BufferSizeRadio = NewFlags.BufferSizeRadio;           //Buffer for FFT   of radio
+            BufferSize = NewFlags.BufferSize;                     //Buffer for FFT   of radar                            
+            remove_symetrics = NewFlags.remove_symetrics;         //Flag indicate if the symetric signals in radar has to be removed
+            average = NewFlags.average;                           //Average Radar frames over specified number
+            scale_type = NewFlags.scale_type;                     //sygnal scale in radar 0-lin, 1-sqrt, 2-log
+            MaxAverage = NewFlags.MaxAverage;                     //Maximum frame average for radar
+            DopplerZoom = NewFlags.DopplerZoom;                   //Distance zoom in pasive radar
+            PasiveGain = NewFlags.PasiveGain;                     //Gain of the ambiguity function
+            Columns = NewFlags.Columns;                           //Screen columns
+            Rows = NewFlags.Rows;                                 //Screen rows
+            OpenCL = NewFlags.OpenCL;                             //Turn on/off openCL calculations
+            DistanceShift = NewFlags.DistanceShift;               //Task divider between GPU and CPU for rows calculations in ambiguity function. CPU task is CPU_GPU_task_ratio and GPU is 1.0-CPU_GPU_task_ratio
+            CorrectBackground = NewFlags.CorrectBackground;       //Correct radar background
+            FreezeBackground = NewFlags.FreezeBackground;         //Freze the recorded background with out updating it
+            NrReduceRows = NewFlags.NrReduceRows;
 
-            NrCorrectionPoints = NewFlags.NrCorrectionPoints;                     //Nr of points used for correction in regresion
-            ColectEvery = NewFlags.ColectEvery;                                   //Colect correction points every .... points
-            CorectionWeight = NewFlags.CorectionWeight;                           //Corection weight
+            NrCorrectionPoints = NewFlags.NrCorrectionPoints;     //Nr of points used for correction in regresion
+            ColectEvery = NewFlags.ColectEvery;                   //Colect correction points every .... points
+            CorectionWeight = NewFlags.CorectionWeight;           //Corection weight
             DeviceName = NewFlags.DeviceName;
             alpha = NewFlags.alpha;
 
 
-            ////Flags related to correlation
-            Positive = NewFlags.Positive;                                         //Correlation serch in positive direction
-            Negative = NewFlags.Negative;                                         //Correlation serch in negative direction
-            AcceptedLevel = NewFlags.AcceptedLevel;                               //Correlation level of acceptance
-            CorrelateLevel = NewFlags.CorrelateLevel;                             //Corelate flow map level
-            CorrelateAmplitude = NewFlags.CorrelateAmplitude;                     //Corelate flow map amplitude
-            AutoCorrelate = NewFlags.AutoCorrelate;
 
             //Site menu
             ButtonRadio = NewFlags.ButtonRadio;                                   //Side menu radio settings (true- menu closed, false menu open)
@@ -189,9 +188,11 @@ namespace PasiveRadar
             ButtonCorrelation = NewFlags.ButtonCorrelation;                       //Side menu correlation settings (true- menu closed, false menu open)
 
             //Flags related to display
-            showRadar = NewFlags.showRadar;                                       //Show data in view control 2
-            showCorrelateWave0 = NewFlags.showCorrelateWave0;                     //Show correlation data 
-            showCorrelateFlow0 = NewFlags.showCorrelateFlow0;                     //Show correlation data flow shifted to 0
+            for (int i = 0; i < ALL_DONGLES; i++)
+                showRadar[i] = NewFlags.showRadar[i];                                       //Show data in view control 2
+
+
+
             showBackground = NewFlags.showBackground;                             //Show data in view control 3
 
             refresh_delay = NewFlags.refresh_delay;                               //Dead time between video frames calculations in ms to save procesor power
@@ -199,10 +200,6 @@ namespace PasiveRadar
 
             for (int i = 0; i < ColorThemeTable.Length; i++)
                 ColorThemeTable[i] = NewFlags.ColorThemeTable[i];                 //Color theme defined by user
-
-            //Internal flags for synchronisation 
-            Resynchronisation = NewFlags.Resynchronisation;                       //Flags used to send information to correlate draw to show this event
-            SynchronisationTime = NewFlags.SynchronisationTime;                   //Time between radios stop and start to resynchronise
 
         }
 
@@ -212,22 +209,22 @@ namespace PasiveRadar
             String yourText;
             //Flags general
             yourText = "# Flags general" + "\n";
-            for (int ix = 0; ix < MAX_DONGLES; ix++)
+            for (int ix = 0; ix < ALL_DONGLES; ix++)
                 yourText += "rate" + ix + " " + rate[ix].ToString(CultureInfo.InvariantCulture) + "\n";
-            for (int ix = 0; ix < MAX_DONGLES; ix++)
+            for (int ix = 0; ix < ALL_DONGLES; ix++)
+                yourText += "bandwitch" + ix + " " + bandwitch[ix].ToString(CultureInfo.InvariantCulture) + "\n";
+            for (int ix = 0; ix < ALL_DONGLES; ix++)
                 yourText += "BufferSizeRadio" + ix + " " + BufferSizeRadio[ix].ToString(CultureInfo.InvariantCulture) + "\n";
             //yourText += "rate1 " + rate1.ToString(CultureInfo.InvariantCulture) + "\n";
-            for (int ix = 0; ix < MAX_DONGLES; ix++)
+            for (int ix = 0; ix < ALL_DONGLES; ix++)
                 yourText += "frequency" + ix + " " + frequency[ix].ToString(CultureInfo.InvariantCulture) + "\n";
             //yourText += "frequency1 " + frequency1.ToString(CultureInfo.InvariantCulture) + "\n";
-            yourText += "FREQUENCY_EQUAL " + !FREQUENCY_EQUAL + "\n";
-            yourText += "volume " + volume + "\n";
+
             yourText += "ColorTheme " + ColorTheme + "\n";
             yourText += "LastActiveWindowRadio " + LastActiveWindowRadio + "\n";
 
-
             //Flags related to radar
-            yourText += "# Flags related to radar" + "\n";
+            yourText += "                      # Flags related to radar" + "\n";
             yourText += "BufferSize " + BufferSize + "\n";
             yourText += "symetrices " + remove_symetrics + "\n";
             yourText += "average " + average + "\n";
@@ -235,25 +232,25 @@ namespace PasiveRadar
             yourText += "PasiveGain " + PasiveGain.ToString(CultureInfo.InvariantCulture) + "\n";
             yourText += "Columns " + Columns + "\n";
             yourText += "Rows " + Rows + "\n";
-            yourText += "TwoDonglesMode " + TwoDonglesMode + "\n";
             yourText += "OpenCL  " + OpenCL + "\n";
             yourText += "DistanceShift " + DistanceShift + "\n";
             yourText += "CorrectBackground " + CorrectBackground + "\n";
             yourText += "NrCorrectionPoints " + NrCorrectionPoints + "\n";
             yourText += "ColectEvery " + ColectEvery + "\n";
             yourText += "CorectionWeight " + CorectionWeight.ToString(CultureInfo.InvariantCulture) + "\n";
+            yourText += "ReduceRows " + NrReduceRows + "\n";
 
-            //Flags related to correlation
-            yourText += "# Flags related to correlation" + "\n";
-            yourText += "Positive " + Positive + "\n";
-            yourText += "Negative " + Negative + "\n";
-            yourText += "AcceptedLevel " + AcceptedLevel.ToString(CultureInfo.InvariantCulture) + "\n";
-            yourText += "CorrelateLevel " + CorrelateLevel + "\n";
-            yourText += "CorrelateAmplitude " + CorrelateAmplitude + "\n";
-            yourText += "AutoCorrelate " + AutoCorrelate + "\n";
+            //Flags related to Map digitalisation
+            yourText += "   #                  Flags related to translation" + "\n";
+            yourText += "DistanceFrom0line " + DistanceFrom0line + "\n";
+            yourText += "NrPointsOfObject " + NrPointsOfObject + "\n";
+            yourText += "AmplitudeOfAccepterPoints " + AmplitudeOfAccepterPoints + "\n";
+            yourText += "ScanPointsPosNegDir " + AcceptedDistance + "\n";
+            yourText += "Integration " + Integration + "\n";
+
 
             //Flags related to sound
-            yourText += "# Flags related to sound" + "\n";
+            yourText += "                   # Flags related to sound" + "\n";
             yourText += "SoundDeviceName " + SoundDeviceName + "\n";
             yourText += "demodulate " + demodulate + "\n";
             yourText += "demodulateFromRadio " + demodulateFromRadio + "\n";
@@ -263,7 +260,7 @@ namespace PasiveRadar
             yourText += "UpCut " + UpCut + "\n";
 
             //Related to filters IQ stream
-            for (int ix = 0; ix < MAX_DONGLES; ix++)
+            for (int ix = 0; ix < ALL_DONGLES; ix++)
                 yourText += "FilterCentralFreq" + ix + " " + FilterCentralFreq[ix].ToString(CultureInfo.InvariantCulture) + "\n";
             yourText += "taps " + taps + "\n";
             yourText += "FilterType " + FilterType + "\n";
@@ -271,7 +268,7 @@ namespace PasiveRadar
 
 
             //Site menu
-            yourText += "# Site menu " + "\n";
+            yourText += "                              # Site menu " + "\n";
             yourText += "ButtonRadio " + !ButtonRadio + "\n";
             yourText += "ButtonDisplay " + !ButtonDisplay + "\n";
             yourText += "ButtonAudio " + !ButtonAudio + "\n";
@@ -279,27 +276,28 @@ namespace PasiveRadar
             yourText += "ButtonCorrelation " + !ButtonCorrelation + "\n";
 
             //Flags related to display
-            yourText += "# Flags related to display" + "\n";
-            for (int ix = 0; ix < MAX_DONGLES; ix++)
+            yourText += "                              # Flags related to display" + "\n";
+            for (int ix = 0; ix < ALL_DONGLES; ix++)
                 yourText += "showRadioWave" + ix + " " + showRadioWave[ix] + "\n";
-            for (int ix = 0; ix < MAX_DONGLES; ix++)
+            for (int ix = 0; ix < ALL_DONGLES; ix++)
                 yourText += "showRadioFlow" + ix + " " + showRadioFlow[ix] + "\n";
 
-            yourText += "showRadar0 " + showRadar + "\n";
-            yourText += "showCorrelate0 " + showCorrelateWave0 + "\n";
-            yourText += "showCorrelateFlow0 " + showCorrelateFlow0 + "\n";
+            for (int ix = 0; ix < ALL_DONGLES; ix++)
+                yourText += "showRadar" + ix + " " + showRadar[ix] + "\n";
+
+
             yourText += "showDifference " + showBackground + "\n";
 
-            for (int ix = 0; ix < MAX_DONGLES; ix++)
+            for (int ix = 0; ix < ALL_DONGLES; ix++)
                 yourText += "Amplification" + ix + " " + Amplification[ix] + "\n";
 
-            for (int ix = 0; ix < MAX_DONGLES; ix++)
+            for (int ix = 0; ix < ALL_DONGLES; ix++)
             {
                 if (Cumulation[ix] == 0) Cumulation[ix] = 1;
                 yourText += "Cumulation" + ix + " " + Cumulation[ix] + "\n";
             }
 
-            for (int ix = 0; ix < MAX_DONGLES; ix++)
+            for (int ix = 0; ix < ALL_DONGLES; ix++)
                 yourText += "Level" + ix + " " + Level[ix] + "\n";
 
             yourText += "refresh_delay " + refresh_delay + "\n";
@@ -344,11 +342,12 @@ namespace PasiveRadar
         private void Translate(string parameter, string[] worlds)
         {
             string value = worlds[1];
-
+            string tmp = "";
             //Flags radio
-            for (int ix = 0; ix < MAX_DONGLES; ix++)
+            for (int ix = 0; ix < ALL_DONGLES; ix++)
             {
-                if (parameter == "rate" + ix) float.TryParse(value, out rate[ix]);
+                if (parameter == ("rate" + ix))
+                    float.TryParse(value, out rate[ix]);
                 else if (parameter == "frequency" + ix) frequency[ix] = Double.Parse(value, CultureInfo.InvariantCulture); //Double.TryParse(value, out frequency0);
                 else if (parameter == "Amplification" + ix) Int32.TryParse(value, out Amplification[ix]);
                 else if (parameter == "Cumulation" + ix) UInt32.TryParse(value, out Cumulation[ix]);
@@ -357,11 +356,11 @@ namespace PasiveRadar
                 else if (parameter == "showRadioFlow" + ix) Boolean.TryParse(value, out showRadioFlow[ix]);//Flags related to display
                 else if (parameter == "FilterCentralFreq" + ix) float.TryParse(value, out FilterCentralFreq[ix]);//Flags related IQ strem and filters 
                 else if (parameter == "BufferSizeRadio" + ix) UInt32.TryParse(value, out BufferSizeRadio[ix]);
+                else if (parameter == "bandwitch" + ix) UInt32.TryParse(value, out bandwitch[ix]);
             }
 
-            if (parameter == "FREQUENCY_EQUAL") Boolean.TryParse(value, out FREQUENCY_EQUAL);
-            else if (parameter == "volume") Int32.TryParse(value, out volume);
-            else if (parameter == "ColorTheme") Int32.TryParse(value, out ColorTheme);
+
+            if (parameter == "ColorTheme") Int32.TryParse(value, out ColorTheme);
             else if (parameter == "LastActiveWindowRadio") Int32.TryParse(value, out LastActiveWindowRadio);
 
             //Flags related to radar
@@ -372,21 +371,20 @@ namespace PasiveRadar
             else if (parameter == "PasiveGain") PasiveGain = float.Parse(value, CultureInfo.InvariantCulture); //float.TryParse(value, out PasiveGain);
             else if (parameter == "Columns") UInt32.TryParse(value, out Columns);
             else if (parameter == "Rows") UInt32.TryParse(value, out Rows);
-            else if (parameter == "TwoDonglesMode") Boolean.TryParse(value, out TwoDonglesMode);
             else if (parameter == "OpenCL") Boolean.TryParse(value, out OpenCL);
             else if (parameter == "DistanceShift") DistanceShift = Int32.Parse(value, CultureInfo.InvariantCulture); //float.TryParse(value, out CPU_GPU_task_ratio);
             else if (parameter == "CorrectBackground") Boolean.TryParse(value, out CorrectBackground);
             else if (parameter == "NrCorrectionPoints") Int32.TryParse(value, out NrCorrectionPoints);
             else if (parameter == "ColectEvery") Int32.TryParse(value, out ColectEvery);
             else if (parameter == "CorectionWeight") CorectionWeight = float.Parse(value, CultureInfo.InvariantCulture); //float.TryParse(value, out CorectionWeight);
+            else if (parameter == "ReduceRows") UInt32.TryParse(value, out NrReduceRows);
 
-            //Flags related to correlation
-            else if (parameter == "Positive") UInt32.TryParse(value, out Positive);
-            else if (parameter == "Negative") UInt32.TryParse(value, out Negative);
-            else if (parameter == "AcceptedLevel") AcceptedLevel = Double.Parse(value, CultureInfo.InvariantCulture);
-            else if (parameter == "CorrelateLevel") Int32.TryParse(value, out CorrelateLevel);
-            else if (parameter == "CorrelateAmplitude") Int32.TryParse(value, out CorrelateAmplitude);
-            else if (parameter == "AutoCorrelate") Boolean.TryParse(value, out AutoCorrelate);
+            //Flags related to Map
+            else if (parameter == "NrPointsOfObject") Int32.TryParse(value, out NrPointsOfObject);
+            else if (parameter == "AmplitudeOfAccepterPoints") Int32.TryParse(value, out AmplitudeOfAccepterPoints);
+            else if (parameter == "ScanPointsPosNegDir") Int32.TryParse(value, out AcceptedDistance);
+            else if (parameter == "DistanceFrom0line") Int32.TryParse(value, out DistanceFrom0line);
+            else if (parameter == "Integration") Boolean.TryParse(value, out Integration);
 
             //Flags related to sound
             else if (parameter == "SoundDeviceName") SoundDeviceName = value;
@@ -410,10 +408,14 @@ namespace PasiveRadar
             else if (parameter == "ButtonCorrelation") Boolean.TryParse(value, out ButtonCorrelation);
 
             //Flags related to display
-            else if (parameter == "showRadar0") Boolean.TryParse(value, out showRadar);
-            else if (parameter == "showCorrelate0") Boolean.TryParse(value, out showCorrelateWave0);
-            else if (parameter == "showCorrelateFlow0") Boolean.TryParse(value, out showCorrelateFlow0);
-            else if (parameter == "showDifference") Boolean.TryParse(value, out showBackground);
+            else
+                for (int ix = 0; ix < ALL_DONGLES; ix++)
+                {
+                    tmp = "showRadar" + ix;
+                    if (parameter == tmp) Boolean.TryParse(value, out showRadar[ix]);
+                }
+
+            if (parameter == "showDifference") Boolean.TryParse(value, out showBackground);
 
             else if (parameter == "refresh_delay") Int32.TryParse(value, out refresh_delay);
 
@@ -433,8 +435,8 @@ namespace PasiveRadar
             }
 
             //Check bondaries
-            if (AcceptedLevel < 0 || AcceptedLevel > 1) AcceptedLevel = 0.8;
-            if (LastActiveWindowRadio < 0 || LastActiveWindowRadio > MAX_DONGLES) LastActiveWindowRadio = 0;
+
+            if (LastActiveWindowRadio < 0 || LastActiveWindowRadio > ALL_DONGLES) LastActiveWindowRadio = 0;
         }
 
 

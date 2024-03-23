@@ -2,7 +2,6 @@
 //https://en.wikipedia.org/wiki/Window_function
 
 using System;
-using System.Threading;
 
 namespace PasiveRadar
 {
@@ -15,24 +14,24 @@ namespace PasiveRadar
 
         }
 
- 
 
-       public void UberSampling(byte[] In, byte[] Out)
+
+        public void UberSampling(byte[] In, byte[] Out)
         {
             uint a;
-            for (uint i = 0; i < In.Length - 2; i+=2)
+            for (uint i = 0; i < In.Length - 2; i += 2)
             {
                 Out[a = i * 2] = In[i];
-                Out[a + 1] = In[i+1];
+                Out[a + 1] = In[i + 1];
                 Out[a + 2] = (byte)((In[i] + In[i + 2]) / 2);
-                Out[a + 3] = (byte)((In[i+1] + In[i + 3]) / 2);
+                Out[a + 3] = (byte)((In[i + 1] + In[i + 3]) / 2);
             }
         }
 
         public void UberSampling(float[] In, float[] Out)
         {
             uint a;
-            for (uint i = 0; i < In.Length -4; i += 2)
+            for (uint i = 0; i < In.Length - 4; i += 2)
             {
                 Out[a = i * 2] = In[i];
                 Out[a + 1] = In[i + 1];
@@ -45,18 +44,18 @@ namespace PasiveRadar
         public void UberSampling(Complex[] In, Complex[] Out)
         {
             uint a;
-            for (uint i = 0; i < In.Length/2 - 1; i ++)
+            for (uint i = 0; i < In.Length / 2 - 1; i++)
             {
                 Out[a = i * 2] = In[i];
-                Out[a + 1] = (In[i] + In[i + 1]) *0.5f;
+                Out[a + 1] = (In[i] + In[i + 1]) * 0.5f;
             }
         }
 
-        
+
         public void ReduceSampling(Complex[] In, Complex[] Out, uint times)
         {
             uint a;
-            for (uint i = 0; i < In.Length/times - 1; i++)
+            for (uint i = 0; i < In.Length / times - 1; i++)
             {
                 Out[i] = In[a = i * times];
             }
@@ -64,10 +63,10 @@ namespace PasiveRadar
         public void ReduceSampling(int[] In, int[] Out)
         {
             int a;
-            for (int i = 0; i < In.Length / 2 - 2; i+= 2)
+            for (int i = 0; i < In.Length / 2 - 2; i += 2)
             {
-                Out[i] = (In[a = i * 2]+ In[a + 2]) / 2;
-                Out[i+1] = (In[a +1] + In[a + 3]) / 2;
+                Out[i] = (In[a = i * 2] + In[a + 2]) / 2;
+                Out[i + 1] = (In[a + 1] + In[a + 3]) / 2;
             }
         }
 

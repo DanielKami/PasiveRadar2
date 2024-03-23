@@ -3,12 +3,12 @@ using System.Windows.Forms;
 
 namespace PasiveRadar
 {
-    public partial class CorrelateControl : UserControl
+    public partial class TranslateControl : UserControl
     {
         public delegate void MyDelegate(Flags LocalFlags);
         public static event MyDelegate EventSettings;
         bool SET = false;  //Avoid sending settings to the main program
-        public CorrelateControl()
+        public TranslateControl()
         {
             InitializeComponent();
             Form1.FlagsDelegate += new Form1.MyDelegate(Initialize);
@@ -18,33 +18,26 @@ namespace PasiveRadar
         {
             SET = false;
             Flags LocalFlags = new Flags();
-            LocalFlags.Negative = flags.Negative;
-            LocalFlags.Positive = flags.Positive;
-            LocalFlags.AcceptedLevel = flags.AcceptedLevel;
-            LocalFlags.CorrelateAmplitude = flags.CorrelateAmplitude;
-            LocalFlags.CorrelateLevel = flags.CorrelateLevel;
-            LocalFlags.AutoCorrelate = flags.AutoCorrelate;
+
+            LocalFlags.AmplitudeOfAccepterPoints = flags.AmplitudeOfAccepterPoints;
+            LocalFlags.NrPointsOfObject = flags.NrPointsOfObject;
+            LocalFlags.DistanceFrom0line = flags.DistanceFrom0line;
+            LocalFlags.AcceptedDistance = flags.AcceptedDistance;
+            LocalFlags.Integration = flags.Integration;
 
 
-            if (LocalFlags.AcceptedLevel < 0) LocalFlags.AcceptedLevel = 0.8;
+            //Execute
+            trackBar1.Value = LocalFlags.AmplitudeOfAccepterPoints;
+            trackBar2.Value = LocalFlags.NrPointsOfObject;
+            trackBar3.Value = LocalFlags.DistanceFrom0line;
+            trackBar4.Value = LocalFlags.AcceptedDistance;
+            checkBox1.Checked = LocalFlags.Integration;
 
-            trackBar1.Value = (int)LocalFlags.Negative;
-            trackBar2.Value = (int)LocalFlags.Positive;          
-            trackBar3.Value = (int)(LocalFlags.AcceptedLevel * 100);
-            trackBar4.Value = LocalFlags.CorrelateAmplitude / 10;
-            trackBar5.Value = LocalFlags.CorrelateLevel + 2000;
+            label3.Text = "" + trackBar1.Value;
+            label4.Text = "" + trackBar2.Value;
+            label6.Text = "" + trackBar3.Value;
+            label9.Text = "" + trackBar4.Value;
 
-            checkBox1.Checked = LocalFlags.AutoCorrelate;
-            if (LocalFlags.AutoCorrelate)
-                trackBar3.Enabled = false;
-            else
-                trackBar3.Enabled = true;
-
-            label3.Text = "" + LocalFlags.Negative;
-            label4.Text = "" + LocalFlags.Positive;
-            label6.Text = "" + (LocalFlags.AcceptedLevel).ToString("0.00");
-            label9.Text = "" + LocalFlags.CorrelateAmplitude / 10;
-            label10.Text = "" + LocalFlags.CorrelateLevel;
             SET = true;
         }
 
@@ -53,7 +46,7 @@ namespace PasiveRadar
         {
             trackBar1.Update();
             trackBar2.Update();
-                
+
             trackBar3.Update();
             trackBar4.Update();
             trackBar5.Update();
@@ -70,23 +63,16 @@ namespace PasiveRadar
             if (!SET) return;
             Flags LocalFlags = new Flags();
 
-            LocalFlags.Negative = (uint)trackBar1.Value;
-            LocalFlags.Positive = (uint)trackBar2.Value;
-            LocalFlags.AcceptedLevel = 0.01 * trackBar3.Value;
-            LocalFlags.CorrelateAmplitude = trackBar4.Value * 10;
-            LocalFlags.CorrelateLevel = trackBar5.Value - 2000;
-            LocalFlags.AutoCorrelate = checkBox1.Checked;
+            LocalFlags.AmplitudeOfAccepterPoints = trackBar1.Value;
+            LocalFlags.NrPointsOfObject = trackBar2.Value;
+            LocalFlags.DistanceFrom0line = trackBar3.Value;
+            LocalFlags.AcceptedDistance = trackBar4.Value;
+            LocalFlags.Integration = checkBox1.Checked;
 
-            label3.Text = "" + LocalFlags.Negative;
-            label4.Text = "" + LocalFlags.Positive;
-            label6.Text = "" + (LocalFlags.AcceptedLevel).ToString("0.00");
-            label9.Text = "" + LocalFlags.CorrelateAmplitude / 10;
-            label10.Text = "" + LocalFlags.CorrelateLevel;
-
-            if (LocalFlags.AutoCorrelate)
-                trackBar3.Enabled = false;
-            else
-                trackBar3.Enabled = true;
+            label3.Text = "" + trackBar1.Value;
+            label4.Text = "" + trackBar2.Value;
+            label6.Text = "" + trackBar3.Value;
+            label9.Text = "" + trackBar4.Value;
 
             if (EventSettings != null)
                 EventSettings(LocalFlags);

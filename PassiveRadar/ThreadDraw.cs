@@ -1,11 +1,12 @@
-﻿using System;
+﻿using SDRdue;
+using System;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace PasiveRadar
 {
-
     public unsafe partial class Form1
     {
         protected Stopwatch watch = System.Diagnostics.Stopwatch.StartNew();
@@ -24,29 +25,26 @@ namespace PasiveRadar
         volatile bool draw_radar_exit = false;
         volatile bool draw_radar_exited = false;
 
+        Thread thread_draw_map = null;
+        volatile bool draw_map_exit = false;
+        volatile bool draw_map_exited = false;
 
-
-        private readonly Object LockMain = new Object();
-        private readonly Object LockMain2 = new Object();
+        private readonly Object[] LockMainDataStream = new Object[Flags.ALL_DONGLES];
+        private readonly Object[] LockRadarScene = new Object[Flags.ALL_DONGLES];
+        private readonly Object[] LockMap = new Object[Flags.ALL_DONGLES];
+        private readonly Object LockMapBlops = new Object();
         public AutoResetEvent DrawEvent2 = new AutoResetEvent(false);
         public AutoResetEvent DrawEvent = new AutoResetEvent(false);
-
 
         private bool resizing;
 
         WindowWave[] window_wave;
         WindowFlow[] window_flow;
         double[][] dataRadio;
-
-
-        float[] dataRadar;
-        double[] dataDifference;
-        float[] PostProc;
-
+        float[][] dataRadar;
+        float[][] PostProc;
         Complex[][] DataIn;
-
         Complex[][] DataOut;
-
 
         bool[] MouseDownPanel;
         int[] oldX_position;
@@ -54,17 +52,20 @@ namespace PasiveRadar
         bool FilterMove = false;
         bool RightBandMove = false;
         bool LeftBandMove = false;
-
-
+        long lost = 0, count = 0;
+        uint lost_per_s = 0;
+        double[] average;
+        int max = 0;
+        //Start radar with radio and map
         public void StartDraw()
         {
             //Draw radar only the scale and crosses
-            if (flags.showRadar)
-                windowRadar.RenderRadar(PostProc, true);
+            {
+                for (int i = 0; i < Flags.ALL_DONGLES; i++)
+                    windowRadar[i].RenderRadar(PostProc[i], flags, null, true);
+            }
 
-            if (flags.showBackground)
-                windowBackground.RenderRadar(PostProc, false);
-
+            //////////////////////////////////////////////////////////////
             calculate_draw_radio_data_exit = false;
             calculate_draw_radio_data_exited = false;
 
@@ -75,6 +76,7 @@ namespace PasiveRadar
                 thread_calculate_draw_radio_data.Start();
             }
 
+            //////////////////////////////////////////////////////////////
             calculate_radar_exit = false;
             calculate_radar_exited = false;
 
@@ -84,6 +86,7 @@ namespace PasiveRadar
                 thread_calculate_radar.Priority = System.Threading.ThreadPriority.AboveNormal;
                 thread_calculate_radar.Start();
             }
+            ///////////////////////////////////////////////////////////////
 
             draw_radar_exit = false;
             draw_radar_exited = false;
@@ -94,8 +97,20 @@ namespace PasiveRadar
                 thread_draw_radar.Priority = System.Threading.ThreadPriority.BelowNormal;
                 thread_draw_radar.Start();
             }
+
+            ///////////////////////////////////////////////////////////////
+            draw_map_exit = false;
+            draw_map_exited = false;
+
+            if (thread_draw_map == null)
+            {
+                thread_draw_map = new Thread(new ThreadStart(DrawMap));
+                thread_draw_map.Priority = System.Threading.ThreadPriority.Lowest;
+                thread_draw_map.Start();
+            }
         }
 
+        //Stop radar, radio and map
         public void StopDraw()
         {
             //Stop thread calculate data for scenes
@@ -103,7 +118,6 @@ namespace PasiveRadar
             {
                 calculate_draw_radio_data_exit = true;
                 while (!calculate_draw_radio_data_exited) ;
-
                 thread_calculate_draw_radio_data = null;
             }
 
@@ -122,135 +136,170 @@ namespace PasiveRadar
                 while (!draw_radar_exited) ;
                 thread_draw_radar = null;
             }
+
+            if (thread_draw_map != null)
+            {
+                draw_map_exit = true;
+                while (!draw_map_exited) ;
+                thread_draw_map = null;
+            }
         }
 
         private void CalculateDrawrRadioScenes()
         {
+            average = new double[Flags.ALL_DONGLES];
+            for (int k = 0; k < Flags.ALL_DONGLES; k++)
+                average[k] = 0;
 
-            DataIn = new Complex[Flags.MAX_DONGLES][];
-            DataOut = new Complex[Flags.MAX_DONGLES][];
+            DataIn = new Complex[Flags.ALL_DONGLES][];
+            DataOut = new Complex[Flags.ALL_DONGLES][];
 
-
-            for (int i = 0; i < Flags.MAX_DONGLES; ++i)
+            for (int i = 0; i < Flags.ALL_DONGLES; ++i)
             {
                 DataIn[i] = new Complex[flags.BufferSizeRadio[i]];
                 DataOut[i] = new Complex[flags.BufferSizeRadio[i]];
             }
 
-
             while (!calculate_draw_radio_data_exit)
             {
-                DrawRadio();
+                if (!runing)
+                {
+                    Thread.Sleep(100);
+                }
+                else
+                    DrawRadio();
             }
             calculate_draw_radio_data_exited = true;
         }
 
-        //Calculate the scenes and draw them
+        //Calculate the scenes and draw them for radios It is part of CalculateDrawrRadioScenes()
         void DrawRadio()
         {
-
+            if (flags == null) return;
             //Slow it down a bit 
             if (flags.refresh_delay > 0)
                 System.Threading.Thread.Sleep(flags.refresh_delay);
 
-
             //Start FFT calculations
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
+            Parallel.For(0, Flags.MAX_DONGLES_RTLSDR, i =>
             {
-                if (rd[i].Visible & (flags.showRadioWave[i] | flags.showRadioFlow[i]))
+                if (radioRtlSdr[i].status & radio_window[i].Visible & (flags.showRadioWave[i] | flags.showRadioFlow[i]))
                 {
-                    lock (LockMain)
+                    lock (LockMainDataStream[i])
                     {
-                        calculate[i].CopyToComplex(radio[i].dataIQ, ref DataIn[i], false);
+                        calculate[i].CopyToComplex(radioRtlSdr[i].dataIQ, ref DataIn[i]);
                     }
                     calculate[i].FFT(DataIn[i], DataOut[i]);
-                }
-            }
 
-            //Now the trick to calculate both FFT in the same time 
-            //Wait until completed FFT calculations
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
-                if (i == 0 || i == 1)
-                {
-                    if (rd[i].Visible & (flags.showRadioWave[i] || flags.showRadioFlow[i]))
-                        calculate[i].FFTWaitToComplete();
-                }
-
-            //Start calculations  FFT data stream
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
-                if (i == 0 || i == 1)
-                {
-                    if (rd[i].Visible & (flags.showRadioWave[i] || flags.showRadioFlow[i]))
-                        calculate[i].Start(DataOut[i], dataRadio[i], flags.Cumulation[i], flags.Amplification[i]);
-                }
-
-            //Wait until completed calculations for streams
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
-            {
-                if (rd[i].Visible & (flags.showRadioWave[i] || flags.showRadioFlow[i]))
+                    //Now the trick to calculate  FFT in the same time 
+                    //Wait until completed FFT calculations
+                    calculate[i].FFTWaitToComplete();
+                    //Start calculations  FFT data stream RTLSDR
+                    calculate[i].Start(DataOut[i], dataRadio[i], flags.Cumulation[i], flags.Amplification[i]);
+                    //Wait until completed calculations for streams
                     calculate[i].WaitToFinischCalc();
+
+                    double ave = 0;
+                    for (int k = 0; k < DataIn.Length; k++)
+                        ave += Math.Sqrt(DataIn[i][k].Im * DataIn[i][k].Im + DataIn[i][k].Re * DataIn[i][k].Re); ;
+                    ave /= DataIn.Length;
+
+                    average[i] += ave * 0.05;
+                    average[i] /= 1.05;
+
+                    //Draw scenes waves
+                    if (flags.showRadioWave[i])
+                        window_wave[i].RenderWave(dataRadio[i], average[i], 0);
+
+                    //Draw scenes flows
+                    if (flags.showRadioFlow[i])
+                        window_flow[i].RenderFlow(dataRadio[i]);
+                }
             }
+            );
 
-            //Draw scenes waves
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
-                if (rd[i].Visible & flags.showRadioWave[i])
-                    window_wave[i].RenderWave(dataRadio[i]);
+            Parallel.For(Flags.MAX_DONGLES_RTLSDR, Flags.ALL_DONGLES, i =>
+            {
+                if (radioRSP1[i - Flags.MAX_DONGLES_RTLSDR].status & radio_window[i].Visible & (flags.showRadioWave[i] | flags.showRadioFlow[i]))
+                {
+                    lock (LockMainDataStream[i])
+                    {
+                        calculate[i].CopyToComplex(radioRSP1[i - Flags.MAX_DONGLES_RTLSDR].dataIQ, ref DataIn[i]);
+                        for (int l = 0; l < DataIn.Length; l++)
+                            if (DataIn[i][l].Re > max)
+                                max = (int)DataIn[i][l].Re;
+                    }
+                    calculate[i].FFT(DataIn[i], DataOut[i]);
 
-            //Draw scenes flows
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
-                if (rd[i].Visible & flags.showRadioFlow[i])
-                    window_flow[i].RenderFlow(dataRadio[i]);
+                    calculate[i].FFTWaitToComplete();
+                    //Start calculations  FFT data stream RTLSDR
+                    calculate[i].Start(DataOut[i], dataRadio[i], flags.Cumulation[i], flags.Amplification[i]);
+                    //Wait until completed calculations for streams
+                    calculate[i].WaitToFinischCalc();
 
+
+                    double ave = 0;
+                    for (int k = 0; k < DataIn.Length; k++)
+                    {
+                        ave += Math.Sqrt(DataIn[i][k].Im * DataIn[i][k].Im + DataIn[i][k].Re * DataIn[i][k].Re); ;
+
+                    }
+                    ave /= DataIn.Length;
+
+                    average[i] += ave * 0.05;
+                    average[i] /= 1.05;
+                    if (flags.showRadioWave[i])
+                    {
+                        lost += radioRSP1[i - Flags.MAX_DONGLES_RTLSDR].lost;
+                        count++;
+                        if (count == 10)
+                        {
+                            lost_per_s = (uint)(lost / count);
+                            count = lost = 0;
+                        }
+                        window_wave[i].RenderWave(dataRadio[i], average[i], lost_per_s);
+                    }
+                    if (flags.showRadioFlow[i])
+                        window_flow[i].RenderFlow(dataRadio[i]);
+                }
+            }
+            );
         }
 
         private void CalculateRadarScene()
         {
-            uint CorrelationShift = 0;
-            float[] DataCorrelate = new float[flags.BufferSize + flags.Negative + flags.Positive];
-            correlate.Init(flags.BufferSize);
-
 
             while (!calculate_radar_exit)
             {
-                if (runing)
+                if (!runing)
                 {
-                    //uint BufferNegPos = flags.BufferSize + (Flags.PositiveMax + Flags.NegativeMax) * 2;
+                    Thread.Sleep(100);
+                }
+                else
+                {
+                    //RtlSdr
+                    for (int i = 0; i < Flags.MAX_DONGLES_RTLSDR; i++)
+                        if (radioRtlSdr[i].status & radioRtlSdr[i] != null && flags.showRadar[i] == true)
+                            lock (LockMainDataStream[i])
+                                Buffer.BlockCopy(radioRtlSdr[i].dataIQ, 0, dataOutRadio[i], 0, (int)flags.BufferSize * sizeof(short));
 
-                    //if (dataOutRadio0.Length != BufferNegPos)
-                    //{
-                    //    dataOutRadio0 = new int[BufferNegPos];
-                    //    dataOutRadio1 = new int[BufferNegPos];
-                    //}
-
-                    //Copy
-                    lock (LockMain)
-                    {
-                        //uint size = flags.Columns * flags.Rows + flags.Columns;
-                        //if (dataRadar.Length != size)
-                        //    dataRadar = new float[size];
- 
-
-                        if (radio[0] != null)
-                            for (int i = 0; i < flags.BufferSize; ++i)
-                                dataOutRadio0[i] = (int)radio[0].dataIQ[i];
-
-                        if (radio[1] != null & flags.TwoDonglesMode)
-                            for (int i = 0; i < flags.BufferSize; ++i)
-                                dataOutRadio1[i] = (int)radio[1].dataIQ[i];
-                    }
-
-
-                    //Correlate data streams still slow
-                    if (flags.TwoDonglesMode)
-                        correlate.Begin(dataOutRadio0, dataOutRadio1, DataCorrelate, ref CorrelationShift, flags);
-
+                    //SDRplay
+                    for (int i = 0; i < Flags.MAX_DONGLES_RSP1; i++)
+                        if (radioRSP1[i].status & radioRSP1[i] != null && flags.showRadar[i + Flags.MAX_DONGLES_RTLSDR] == true)
+                            lock (LockMainDataStream[i + Flags.MAX_DONGLES_RTLSDR])
+                                Buffer.BlockCopy(radioRSP1[i].dataIQ, 0, dataOutRadio[i + Flags.MAX_DONGLES_RTLSDR], 0, (int)flags.BufferSize * sizeof(short));
 
                     //Calculate ambiguity map extremally slow 10x
-                    if (flags.showRadar & runing)
+                    //dataOutRadio is generated here
+                    if (runing)
                         try
                         {
-                            ambiguity.StartGPU(dataOutRadio0, dataOutRadio1, dataRadar, flags);
-                            ambiguity.StopGPU();
+                            //Calculate ambiguity for recivers
+                            for (int i = 0; i < Flags.ALL_DONGLES; i++)
+                                if (flags.showRadar[i] == true)
+                                {
+                                    ambiguity.ProcessGPU(dataOutRadio[i], null, dataRadar[i], flags);
+                                }
                         }
                         catch (Exception ex)
                         {
@@ -260,19 +309,6 @@ namespace PasiveRadar
                         }
                     ///////////////////////////////////////////////////////////////////////////////
 
-
-                    //Correlate
-                    if (flags.showCorrelateWave0)
-                    {
-                        windowCorrelateWave.RenderCorrelate(DataCorrelate, flags);
-                        flags.Resynchronisation = false; //reset flag
-                    }
-
-                    if (flags.showCorrelateFlow0)
-                    {
-                        windowCorrelateFlow.RenderCorrelateFlow(DataCorrelate, CorrelationShift);
-                    }
-
                     //Calculate calculations per second
                     calculation++;
                     if (watch.ElapsedMilliseconds >= 1000L)
@@ -281,67 +317,157 @@ namespace PasiveRadar
                         calculation = 0;
                         watch.Restart();
                     }
-
                 }
-                else
-                    Thread.Sleep(100);
             }
 
             calculate_radar_exited = true; //Thread exit normally
         }
 
+        private void DrawMap()
+        {
+            //draw_map_exited = true;
+            //return;
+            float[][] PostProcMap = new float[Flags.MAX_DONGLES_RSP1 + Flags.MAX_DONGLES_RTLSDR][];
+
+            float[][] dataRadar_copy = new float[Flags.MAX_DONGLES_RSP1 + Flags.MAX_DONGLES_RTLSDR][];
+            for (int i = 0; i < Flags.MAX_DONGLES_RSP1 + Flags.MAX_DONGLES_RTLSDR; i++)
+                dataRadar_copy[i] = new float[dataRadar[i].Length];
+
+            while (!draw_map_exit)
+            {
+                if (mMap == null || runing == false)
+                {
+                    Thread.Sleep(100);
+                }
+                else
+                {
+                    if (dataRadar[0] != null || dataRadar[1] != null || dataRadar[2] != null || dataRadar[3] != null)
+                    {
+                        if (flags.ShowMap)
+                        {
+                            Parallel.For(0, Flags.ALL_DONGLES, i =>
+                            {
+                                //copy rugh data to local arrays
+                                lock (LockMap[i])
+                                {
+                                    System.Buffer.BlockCopy(dataRadar[i], 0, dataRadar_copy[i], 0, dataRadar[i].Length * sizeof(float));
+                                }
+
+                                uint colrow = flags.Columns * flags.Rows;
+
+                                PostProcMap[i] = new float[colrow];
+                                map_cumulate[i].Run(dataRadar_copy[i], PostProcMap[i], flags.average);
+
+                                if (flags.CorrectBackground)
+                                {
+                                    if (!flags.FreezeBackground)
+                                        RegresionMap[i].Add(PostProcMap[i], flags.ColectEvery); //Add frames for regresion fit to find the best background correction, the second parameter describe how othen to add the element
+
+                                    RegresionMap[i].CorrectBackground(PostProcMap[i], flags.CorectionWeight);
+                                }
+
+                                //Reduce rows
+                                ReduceRows(ref PostProcMap[i]);
+
+                                //Translated blops to values are in map after this
+                                lock (LockMapBlops)
+                                {
+                                    mMap.pointFromRadar[i] = Finder.FindObject(PostProcMap[i], flags);
+                                }
+
+                            }
+                        );
+                        }
+                    }
+                    else
+                        Thread.Sleep(100);
+                }
+            }
+
+            draw_map_exited = true; //Thread exit normally
+        }
+
         private void DrawRadarScene()
         {
-            float[] dataRadar_copy = new float[dataRadar.Length];
+            //draw_radar_exited = true;
+            //return;
 
+            float[][] dataRadar_copy = new float[Flags.ALL_DONGLES][];
+            for (int i = 0; i < Flags.ALL_DONGLES; i++)
+                dataRadar_copy[i] = new float[dataRadar[i].Length];
 
             while (!draw_radar_exit)
             {
-                if (runing || dataRadar != null)
+                if (!runing)
                 {
-                    //if (PostProc.Length != flags.Columns * flags.Rows)
-                    //    PostProc = new float[flags.Columns * flags.Rows];
-
-                    //if (dataRadar_copy.Length != dataRadar.Length)
-                    //    dataRadar_copy = new float[dataRadar.Length];
-
-                    lock (LockMain2)
-                    {
-                        for (int i = 0; i < dataRadar.Length; ++i)
-                            dataRadar_copy[i] = dataRadar[i];
-                    }
-
-
-                    //Average maps; ups it was slow
-                    if (flags.showRadar)
-                        radar_cumulate.Run(dataRadar_copy, PostProc, flags.average);
-
-                    if (flags.CorrectBackground)
-                    {
-                        if (!flags.FreezeBackground)
-                            Regresion.Add(PostProc, flags.ColectEvery); //Add frames for regresion fit to find the best background correction, the second parameter describe how othen to add the element
-                        Regresion.CorrectBackground(PostProc, flags.CorectionWeight);
-                    }
-
-                    //Draw radar
-                    if (flags.showRadar)
-                        windowRadar.RenderRadar(PostProc, true);
-
-                    //Draw scene  radar background
-                    if (flags.showBackground)
-                    {
-                        Regresion.Background(PostProc, flags);
-                        windowBackground.RenderRadar(PostProc, false);
-                    }
+                    Thread.Sleep(100);
                 }
                 else
-                    Thread.Sleep(100);
+                {
+                    //Average maps; ups it was slow
+                    Parallel.For(0, Flags.ALL_DONGLES, i =>
+                    {
+                        if (flags.showRadar[i])
+                        {
+                            lock (LockRadarScene[i])
+                            {
+                                System.Buffer.BlockCopy(dataRadar[i], 0, dataRadar_copy[i], 0, dataRadar[i].Length * sizeof(float));
+                            }
+
+                            //average
+                            radar_cumulate[i].Run(dataRadar_copy[i], PostProc[i], flags.average);
+
+                            if (flags.CorrectBackground)
+                            {
+                                if (!flags.FreezeBackground)
+                                    Regresion[i].Add(PostProc[i], flags.ColectEvery); //Add frames for regresion fit to find the best background correction, the second parameter describe how othen to add the element
+                                Regresion[i].CorrectBackground(PostProc[i], flags.CorectionWeight);
+                            }
+
+                            ReduceRows(ref PostProc[i]);
+
+                            if (flags.ShowMap == false)
+                                windowRadar[i].RenderRadar(PostProc[i], flags, null, true);//expensive
+                            else   //Draw radar with map data, must be separated with this configuration. To corectly calculate the position all 4 radar data are necessary  
+                                windowRadar[i].RenderRadar(PostProc[i], flags, mMap.pointFromRadar[i], true);
+                        }
+                    }
+                   );
+                }
             }
 
             draw_radar_exited = true; //Thread exit normally
         }
 
+        private void ReduceRows(ref float[] PostProc)
+        {
+            //Reduce rows
+            if (flags != null)
+            {
+                uint ReducedRows = (flags.Rows / flags.NrReduceRows);
 
+                if (PostProc.Length >= flags.Columns * flags.Rows)
+                    for (uint i = 0; i < flags.Columns; i++)
+                    {
+                        uint index_i = i * flags.Rows;
+                        uint index_r = i * ReducedRows;
+                        float temp;
+                        for (uint j = 0; j < ReducedRows; j++)
+                        {
+                            uint l = index_i + j * flags.NrReduceRows;
+                            float tmp;
+                            //Reduce points from the row, find the max in the group
+                            temp = 0;
+                            for (uint k = 0; k < flags.NrReduceRows; k++)
+                            {
+                                if ((tmp = PostProc[l + k]) > temp) //take max from the group
+                                    temp = tmp;
+                            }
+                            PostProc[index_r + j] = temp;//only one?
+                        }
+                    }
+            }
+        }
 
         protected override void OnLoad(EventArgs e)
         {
@@ -351,13 +477,12 @@ namespace PasiveRadar
                 x.OnLoadWindow();
             foreach (WindowFlow x in window_flow)
                 x.OnLoadWindow();
-            windowRadar.OnLoadWindow();
-            windowBackground.OnLoadWindow();
-            windowCorrelateWave.OnLoadWindow();
-            windowCorrelateFlow.OnLoadWindow();
+
+            for (int i = 0; i < Flags.ALL_DONGLES; i++)
+                windowRadar[i].OnLoadWindow();
+
             resizing = false;
             UpdateAllScenesWhenRunning();
-
         }
 
         private void Form1_SizeChanged(object sender, EventArgs e)
@@ -367,7 +492,6 @@ namespace PasiveRadar
 
         private void splitContainer_SplitterMoved(object sender, SplitterEventArgs e)
         {
-            // resizing = false;
             UpdateAllScenesWhenRunning();
         }
 
@@ -375,7 +499,7 @@ namespace PasiveRadar
         private void WindowsSizeCorection(int Nr)
         {
             StopDraw();//Thread stop
-            if (rd[Nr].radio_resize == false)
+            if (radio_window[Nr].radio_resize == false)
             {
                 window_wave[Nr].SizeChange();
                 window_flow[Nr].SizeChange();
@@ -392,10 +516,8 @@ namespace PasiveRadar
             StopDraw();//Thread stop
             if (resizing == false)
             {
-                if (windowRadar != null) windowRadar.SizeChange();
-                if (windowBackground != null) windowBackground.SizeChange();
-                if (windowCorrelateWave != null) windowCorrelateWave.SizeChange();
-                if (windowCorrelateFlow != null) windowCorrelateFlow.SizeChange();
+                for (int i = 0; i < Flags.ALL_DONGLES; i++)
+                    if (windowRadar != null && windowRadar[i] != null) windowRadar[i].SizeChange();
 
                 if (window_wave != null)
                     foreach (WindowWave x in window_wave)
@@ -406,7 +528,8 @@ namespace PasiveRadar
                         if (x != null) x.SizeChange();
 
                 //For scenes update when is not running
-                UpdateAllScenes();
+                // UpdateAllScenes();
+                DrawRadio();
             }
             if (runing)
                 StartDraw();//Thread start
@@ -423,7 +546,6 @@ namespace PasiveRadar
                     StopDraw();
                 }
         }
-
 
         private void panelViewport3_MouseMove(object sender, MouseEventArgs e)
         {
@@ -448,7 +570,7 @@ namespace PasiveRadar
             MouseDownPanel[Nr] = true;
             oldX_position[Nr] = x;
             //Find how many MHz is one pixel
-            MHz_perPixel[Nr] = 1.0 / ((rd[Nr].panelRadioWave.Width - DrawWave.LeftMargin - DrawWave.RightMargin) / flags.rate[Nr]);
+            MHz_perPixel[Nr] = 1.0 / ((radio_window[Nr].panelRadioWave.Width - DrawWave.LeftMargin - DrawWave.RightMargin) / flags.rate[Nr]);
 
             float pos = (float)((x - DrawWave.LeftMargin) * MHz_perPixel[Nr] + flags.rate[Nr] / 2);
             float leftBand = (float)(flags.rate[Nr] - flags.FilterCentralFreq[Nr] - flags.RadioHalfBandwith);
@@ -464,7 +586,7 @@ namespace PasiveRadar
         private void CalculateMouseMove(int Nr, int x)
         {
             float half_rate = (float)flags.rate[Nr] / 2;
-            MHz_perPixel[Nr] = 1.0 / ((rd[Nr].panelRadioWave.Width - DrawWave.LeftMargin - DrawWave.RightMargin) / flags.rate[Nr]);
+            MHz_perPixel[Nr] = 1.0 / ((radio_window[Nr].panelRadioWave.Width - DrawWave.LeftMargin - DrawWave.RightMargin) / flags.rate[Nr]);
             double PointedFrequency = (flags.frequency[Nr] - half_rate);
             float FrequencyAtCursorPosition = (float)(PointedFrequency + (x - DrawWave.LeftMargin) * MHz_perPixel[Nr]) / 1000000;
 
@@ -529,10 +651,6 @@ namespace PasiveRadar
                 {
                     flags.frequency[Nr] -= s;
 
-                    if (flags.FREQUENCY_EQUAL)
-                        for (int i = 0; i < Flags.MAX_DONGLES; i++)
-                            flags.frequency[i] = flags.frequency[Nr];
-
                     UpdateFrequencies(Nr);
                     oldX_position[Nr] = x;
                 }
@@ -541,20 +659,18 @@ namespace PasiveRadar
 
         void UpdateFiltersAndScale(int Nr)//Nr-active radio at the moment
         {
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
+            for (int i = 0; i < Flags.ALL_DONGLES; i++)
             {
-                if (Nr != -1 && flags.FREQUENCY_EQUAL) flags.FilterCentralFreq[i] = flags.FilterCentralFreq[Nr];
                 window_wave[i].Location(-1, (float)(flags.rate[i] / 2 - (flags.FilterCentralFreq[i] + flags.RadioHalfBandwith)) / 1000000, (float)(flags.rate[i] / 2 - (flags.FilterCentralFreq[i] - flags.RadioHalfBandwith)) / 1000000);
                 window_flow[i].Location(-1);
             }
-
         }
 
         void WindowsLocation(float FrequencyAtCursorPosition)
         {
-            windowBackground.Location(FrequencyAtCursorPosition);
+            // windowBackground.Location(FrequencyAtCursorPosition);
 
-            for (int i = 0; i < Flags.MAX_DONGLES; i++)
+            for (int i = 0; i < Flags.ALL_DONGLES; i++)
             {
                 window_wave[i].Location(FrequencyAtCursorPosition, (float)(flags.rate[i] / 2 - (flags.FilterCentralFreq[i] + flags.RadioHalfBandwith)) / 1000000, (float)(flags.rate[i] / 2 - (flags.FilterCentralFreq[i] - flags.RadioHalfBandwith)) / 1000000);
             }
@@ -562,6 +678,7 @@ namespace PasiveRadar
                 x.Location(FrequencyAtCursorPosition);
         }
         #endregion
+
 
     }
 }

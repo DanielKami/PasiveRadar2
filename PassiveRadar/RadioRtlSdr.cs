@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace PasiveRadar
 {
-    public class Radio : IDisposable
+    public class RadioRtlSdr : IDisposable
     {
         //    private readonly AutoResetEvent _signal = new AutoResetEvent();
         public int BufferSize;
@@ -23,7 +23,7 @@ namespace PasiveRadar
         public int dongle_type;
 
         // Size of dongle buffer, it is smaller than buffer. Data are cumulated to generate full buffer. 
-        int Radio_buffer_size = 1024 * 8;
+        int Radio_buffer_size = 1024 * 11;
 
         //Gains of amlplifier
         public int[] tuner_gain_list;
@@ -33,11 +33,13 @@ namespace PasiveRadar
         public int[,] stage_gains_list;
         public int[] nr_of_gains_in_stage;
 
-        Dll dll;
-        IntPtr dev = IntPtr.Zero;
-        public byte[] data_dongle = null;
-        public byte[] dataIQ = null;
+        Dll_RtlSdr dll;
+        //SDR1
+        DLL_RSP1 dllplay; //SDR1 radio controll
 
+        IntPtr dev = IntPtr.Zero;
+        public Int16[] data_dongle = null;
+        public short[] dataIQ = null;
 
         Thread thread = null;
         private readonly Object _Lock = new Object();
@@ -46,11 +48,11 @@ namespace PasiveRadar
 
         public AutoResetEvent autoVisualEvent;
 
-        public Radio()
+        public RadioRtlSdr()
         {
-            dll = new Dll();
+            dll = new Dll_RtlSdr();
 
-            //Gains
+            //Gains RTLSDR
             tuner_gain_list = new int[256];
             stage_gains_list = new int[32, 256];
             nr_of_gains_in_stage = new int[32];
@@ -60,13 +62,10 @@ namespace PasiveRadar
         {
             Stop();
             BufferSize = (int)flags.BufferSize;
-            Radio_buffer_size = (int)Math.Pow(2, flags.Radio_buffer_size) * 1024;
+            Radio_buffer_size = (int)flags.Radio_buffer_size * 1024;
             dll.InitBuffer((int)flags.BufferSize);
-            dataIQ = new byte[(int)flags.BufferSize];
-
-            data_dongle = new byte[Radio_buffer_size];
-
-
+            dataIQ = new Int16[(int)flags.BufferSize];
+            data_dongle = new short[Radio_buffer_size];
             if (dev != null)
                 dll.reset_buffer(dev);
         }
@@ -80,20 +79,20 @@ namespace PasiveRadar
             if (thread == null)
             {
                 thread = new Thread(new ThreadStart(Read));
-                thread.Priority = System.Threading.ThreadPriority.Highest;
+                thread.Priority = System.Threading.ThreadPriority.Lowest;
                 thread.Start();
             }
         }
+
+        //SDRplay
 
         public void Stop()
         {
             if (thread != null)
             {
                 exit = true;
-
                 while (!exited) ;
                 thread = null;
-
                 Array.Clear(data_dongle, 0, Radio_buffer_size);
                 Array.Clear(dataIQ, 0, BufferSize);
             }
@@ -108,18 +107,19 @@ namespace PasiveRadar
                 int r1 = dll.get_usb_strings(dev, ref manufact, ref product, ref serial);
                 dongle_type = dll.get_tuner_type(dev);
                 //Tuner gains in stages
-                dll.get_tuner_gains(dev, tuner_gain_list);
-                CheckNumberOfGains();
-
+                Number_of_gains = dll.get_tuner_gains(dev, tuner_gain_list);
+                //CheckNumberOfGains();
+                // = -dll.get_tuner_gain(dev);
                 FindStageGainList();
                 SetCentralFreq();
                 dll.reset_buffer(dev);
                 dll.set_direct_sampling(dev, 0);
                 dll.set_agc_mode(dev, 0);
-                GainMode(true);
+                GainMode(false);
                 status = true;
             }
-
+            else
+                status = false;
             return r;
         }
 
@@ -149,7 +149,6 @@ namespace PasiveRadar
         public int SetDirectSampling(int on)
         {
             int r = 0;
-
             if (dev != IntPtr.Zero)
             {
                 r = dll.set_direct_sampling(dev, on);
@@ -186,8 +185,6 @@ namespace PasiveRadar
             }
             return r;
         }
-
-
 
         private void CheckNumberOfGains()
         {
@@ -239,7 +236,6 @@ namespace PasiveRadar
         public int get_device_usb_strings(ref string str)
         {
             return dll.get_device_usb_strings(0, ref str);
-
         }
 
         public int SetCentralFreq()
@@ -365,7 +361,7 @@ namespace PasiveRadar
 
             int count = 0;
             int buffer_multiplication = BufferSize / Radio_buffer_size - 1;//-1 because copy offset and the radio buffer must be smaller than BufferSize
-            byte[] temp_buffer = new byte[BufferSize];
+            short[] temp_buffer = new short[BufferSize];
             int reduced_buffer_size = BufferSize - Radio_buffer_size;
 
             while (!exit)
@@ -382,26 +378,26 @@ namespace PasiveRadar
                     continue;
                 }
 
-                rotate_180(data_dongle);//fast
+
 
                 //first fill the temp buffer
                 if (count < buffer_multiplication)
                 {
-                    Buffer.BlockCopy(data_dongle, 0, temp_buffer, Radio_buffer_size * count, Radio_buffer_size);
+                    Buffer.BlockCopy(data_dongle, 0, temp_buffer, Radio_buffer_size * count, Radio_buffer_size * sizeof(short));
                     count++;
                 }
 
                 //Make a place for new data
-                Buffer.BlockCopy(temp_buffer, Radio_buffer_size, temp_buffer, 0, reduced_buffer_size);
+                Buffer.BlockCopy(temp_buffer, Radio_buffer_size, temp_buffer, 0, reduced_buffer_size * sizeof(short));
 
                 //Add to the end of temp_buffer a new data (fast)
-                Buffer.BlockCopy(data_dongle, 0, temp_buffer, reduced_buffer_size, Radio_buffer_size); //    Array src,    int srcOffset,    Array dst,    int dstOffset,    int count
+                Buffer.BlockCopy(data_dongle, 0, temp_buffer, reduced_buffer_size, Radio_buffer_size * sizeof(short)); //??    Array src,    int srcOffset,    Array dst,    int dstOffset,    int count
 
                 //Protct reading data
                 lock (_Lock)
                 {
                     //copy temp to dataIQ must be protected, acces by other threads
-                    Buffer.BlockCopy(temp_buffer, 0, dataIQ, 0, BufferSize);
+                    Buffer.BlockCopy(temp_buffer, 0, dataIQ, 0, BufferSize * sizeof(short));
                 }
             }
             exited = true;
@@ -417,24 +413,7 @@ namespace PasiveRadar
 
 
 
-        void rotate_180(byte[] buf)
-        /* 180 rotation is 1+0j, 
-               0  1   2   3   4  5   6   7
-           or [0, 1; -2, -3;  4, 5; -6, -7] */
 
-        {
-            uint a;
-            for (uint i = 0; i < buf.Length - 7; i += 8)
-            {
-                /* uint8_t negation = 255 - x */
-                buf[a = i + 2] = (byte)(255 - buf[a]);
-                buf[a = i + 3] = (byte)(255 - buf[a]);
-
-                buf[a = i + 6] = (byte)(255 - buf[a]);
-                buf[a = i + 7] = (byte)(255 - buf[a]);
-
-            }
-        }
 
         protected virtual void Dispose(bool disposing)
         {

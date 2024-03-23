@@ -1,8 +1,6 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
+﻿using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.IO;
 using System.Windows.Forms;
 
 namespace PasiveRadar
@@ -27,9 +25,11 @@ namespace PasiveRadar
             services = new ServiceContainer();
             services.AddService<IGraphicsDeviceService>(service);
             content = new ContentManager(services, "Content");
+
+
         }
 
-       void mWinForm_DeviceReset(Object sender, EventArgs e)
+        void mWinForm_DeviceReset(Object sender, EventArgs e)
         {
             DeviceReset();
             mDrawFlow.SizeChanged(panelViewport, service.GraphicsDevice, service, spriteBatch, spriteFont, mSimpleEffect, texture);
@@ -54,6 +54,8 @@ namespace PasiveRadar
         //Start rander the scene
         public void RenderFlow(double[] data)
         {
+            if (data == null) return;
+
             if (data.Length < mDrawFlow.BufferSize) return;
             if (resizing) return;
 

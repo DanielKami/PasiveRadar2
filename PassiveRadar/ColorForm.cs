@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 
@@ -13,7 +10,7 @@ namespace PasiveRadar
 {
     public partial class ColorForm : Form
     {
-        public  delegate void MyDelegate(Color[] color_table);
+        public delegate void MyDelegate(Color[] color_table);
         public static event MyDelegate EventColor;
         public bool AcceptColors;
         private struct ColorPoint
@@ -60,7 +57,7 @@ namespace PasiveRadar
             AcceptColors = true;
 
 
-            this.Close(); 
+            this.Close();
         }
 
         //Cancel
@@ -134,8 +131,8 @@ namespace PasiveRadar
                     x = ConvertTableToPosition(ListOfPoints.ElementAt(i).PointPosition);
                     // Nice tringle
                     for (int k = 0; k < 10; k++)
-                        if (x - k > 0  && x + k < pictureBox2.Image.Width)
-                            if ( y + k < pictureBox2.Image.Height)
+                        if (x - k > 0 && x + k < pictureBox2.Image.Width)
+                            if (y + k < pictureBox2.Image.Height)
                             {
                                 ((Bitmap)pictureBox2.Image).SetPixel(x - k, y + k, ListOfPoints.ElementAt(i).color);
                                 ((Bitmap)pictureBox2.Image).SetPixel(x + k, y + k, ListOfPoints.ElementAt(i).color);

@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using SDRdue;
 using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
 
 namespace PasiveRadar
@@ -11,8 +13,6 @@ namespace PasiveRadar
 
         DrawWave mDrawWave;
         DrawRadar mDrawRadar;
-        DrawCorrelate mDrawCorrelate;
-
 
         public Window(Panel _panelViewport, int _dongle_nr)
         {
@@ -20,7 +20,6 @@ namespace PasiveRadar
             dongle_nr = _dongle_nr;
             mDrawWave = new DrawWave();
             mDrawRadar = new DrawRadar();
-            mDrawCorrelate = new DrawCorrelate();
 
             service = new GraphicsDeviceService(panelViewport.Handle, panelViewport.Width, panelViewport.Height);
             service.DeviceResetting += mWinForm_DeviceResetting;
@@ -29,7 +28,10 @@ namespace PasiveRadar
             services = new ServiceContainer();
             services.AddService<IGraphicsDeviceService>(service);
             content = new ContentManager(services, "Content");
+
         }
+
+
 
         void mWinForm_DeviceReset(Object sender, EventArgs e)
         {
@@ -37,7 +39,6 @@ namespace PasiveRadar
             DeviceReset();
             mDrawWave.SizeChanged(panelViewport, service.GraphicsDevice, service, spriteBatch, spriteFont, mSimpleEffect);
             mDrawRadar.SizeChanged(panelViewport, service.GraphicsDevice, service, spriteBatch, spriteFont, mSimpleEffect, texture);
-            mDrawCorrelate.SizeChanged(panelViewport, service.GraphicsDevice, service, spriteBatch, spriteFont, mSimpleEffect, texture);
 
         }
 
@@ -49,11 +50,6 @@ namespace PasiveRadar
             mDrawWave.ColorThemeNr = flags.ColorTheme;
             mDrawWave.BufferSize = flags.BufferSizeRadio[dongle_nr];
             mDrawWave.ScalePrepare(panelViewport);
-
-            mDrawCorrelate.ColorThemeNr = flags.ColorTheme;
-            mDrawCorrelate.Level = flags.CorrelateLevel;
-            mDrawCorrelate.Amplitude = flags.CorrelateAmplitude;
-            mDrawCorrelate.DrawPrepare(panelViewport, flags);
 
             mDrawRadar.rate = flags.rate[dongle_nr];
             mDrawRadar.BufferSize = flags.BufferSize;
@@ -74,7 +70,7 @@ namespace PasiveRadar
             if (resizing) return;
 
             if (this.service.GraphicsDevice != null)
-                mDrawWave.Scene(panelViewport, data, dongle_nr);
+                mDrawWave.Scene(panelViewport, data, dongle_nr, 0, 0);
 
             try
             {
@@ -90,37 +86,17 @@ namespace PasiveRadar
             }
         }
 
-        //Start rander the scene
-        public void RenderDifference(double[] data)
-        {
-            if (data.Length < mDrawWave.BufferSize) return;
-            if (resizing) return;
 
-            if (this.service.GraphicsDevice != null)
-                mDrawWave.OnFrameRenderDifference(panelViewport, data);
-
-            try
-            {
-                if (service.GraphicsDevice != null)
-                    service.GraphicsDevice.Present();
-            }
-            catch (Exception ex)
-            {
-                service.ResetDevice(panelViewport.Width, panelViewport.Height);
-                String str = "Plot error. " + ex.ToString();
-                // MessageBox.Show(str);
-                //  System.Windows.Forms.Application.Exit();
-            }
-        }
 
         //Start rander the scene
-        public void RenderRadar(float[] data, bool DrawScale)
+        public void RenderRadar(float[] data, Flags flags, List<Finder.MapPoints> pointFromRadar, bool DrawScale)
         {
+
             if (resizing) return;
 
             if (this.service.GraphicsDevice != null)
             {
-                mDrawRadar.Scene(panelViewport, data, DrawScale);
+                mDrawRadar.Scene(data, flags, pointFromRadar, DrawScale);
 
                 try
                 {
@@ -137,47 +113,6 @@ namespace PasiveRadar
         }
 
         //Start rander the scene
-        public void RenderCorrelate(float[] data, Flags flags)
-        {
-            if (resizing) return;
-
-            if (this.service.GraphicsDevice != null)
-                mDrawCorrelate.Scene(panelViewport, data, flags);
-
-            try
-            {
-                if (service.GraphicsDevice != null)
-                    service.GraphicsDevice.Present();
-            }
-            catch (Exception ex)
-            {
-                service.ResetDevice(panelViewport.Width, panelViewport.Height);
-                String str = "Plot correlation error. " + ex.ToString();
-                //MessageBox.Show(str);
-                //   System.Windows.Forms.Application.Exit();
-            }
-        }
-        //Start rander the scene
-        public void RenderCorrelateFlow(float[] data, uint CorrelationShift)
-        {
-            if (resizing) return;
-
-            if (this.service.GraphicsDevice != null)
-                mDrawCorrelate.SceneFlow(panelViewport, data, CorrelationShift);
-
-            try
-            {
-                if (service.GraphicsDevice != null)
-                    service.GraphicsDevice.Present();
-            }
-            catch (Exception ex)
-            {
-                service.ResetDevice(panelViewport.Width, panelViewport.Height);
-                String str = "Plot correlation error. " + ex.ToString();
-                //MessageBox.Show(str);
-                //   System.Windows.Forms.Application.Exit();
-            }
-        }
 
 
     }

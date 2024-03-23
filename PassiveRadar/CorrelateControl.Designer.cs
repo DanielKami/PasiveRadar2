@@ -1,6 +1,6 @@
 ﻿namespace PasiveRadar
 {
-    partial class CorrelateControl
+    partial class TranslateControl
     {
         /// <summary> 
         /// Required designer variable.
@@ -55,25 +55,25 @@
             // 
             this.trackBar1.Location = new System.Drawing.Point(0, 28);
             this.trackBar1.Margin = new System.Windows.Forms.Padding(4);
-            this.trackBar1.Maximum = 50000;
-            this.trackBar1.Minimum = 10;
+            this.trackBar1.Maximum = 1023;
+            this.trackBar1.Minimum = 1;
             this.trackBar1.Name = "trackBar1";
             this.trackBar1.Size = new System.Drawing.Size(219, 56);
             this.trackBar1.TabIndex = 0;
             this.trackBar1.TickFrequency = 100;
-            this.trackBar1.Value = 10;
+            this.trackBar1.Value = 1000;
             this.trackBar1.Scroll += new System.EventHandler(this.trackBar1_Scroll);
             // 
             // trackBar2
             // 
             this.trackBar2.Location = new System.Drawing.Point(0, 91);
             this.trackBar2.Margin = new System.Windows.Forms.Padding(4);
-            this.trackBar2.Maximum = 50000;
-            this.trackBar2.Minimum = 10;
+            this.trackBar2.Maximum = 50;
+            this.trackBar2.Minimum = 1;
             this.trackBar2.Name = "trackBar2";
             this.trackBar2.Size = new System.Drawing.Size(219, 56);
             this.trackBar2.TabIndex = 1;
-            this.trackBar2.TickFrequency = 100;
+            this.trackBar2.TickFrequency = 10;
             this.trackBar2.Value = 10;
             this.trackBar2.Scroll += new System.EventHandler(this.trackBar2_Scroll);
             // 
@@ -83,9 +83,9 @@
             this.label1.Location = new System.Drawing.Point(7, 7);
             this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(116, 16);
+            this.label1.Size = new System.Drawing.Size(120, 16);
             this.label1.TabIndex = 2;
-            this.label1.Text = "Negative direction";
+            this.label1.Text = "Amplitude of points";
             // 
             // label2
             // 
@@ -93,9 +93,9 @@
             this.label2.Location = new System.Drawing.Point(7, 68);
             this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(109, 16);
+            this.label2.Size = new System.Drawing.Size(167, 16);
             this.label2.TabIndex = 3;
-            this.label2.Text = "Positive direction";
+            this.label2.Text = "Number of accepted pixels";
             // 
             // label3
             // 
@@ -121,11 +121,9 @@
             // 
             this.trackBar3.Location = new System.Drawing.Point(0, 159);
             this.trackBar3.Margin = new System.Windows.Forms.Padding(4);
-            this.trackBar3.Maximum = 100;
             this.trackBar3.Name = "trackBar3";
             this.trackBar3.Size = new System.Drawing.Size(219, 56);
             this.trackBar3.TabIndex = 6;
-            this.trackBar3.TickFrequency = 10;
             this.trackBar3.Scroll += new System.EventHandler(this.trackBar3_Scroll);
             // 
             // label5
@@ -134,9 +132,9 @@
             this.label5.Location = new System.Drawing.Point(7, 139);
             this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(97, 16);
+            this.label5.Size = new System.Drawing.Size(101, 16);
             this.label5.TabIndex = 7;
-            this.label5.Text = "Accepted level";
+            this.label5.Text = "Omit columns +-";
             this.label5.Click += new System.EventHandler(this.label5_Click);
             // 
             // label6
@@ -153,18 +151,19 @@
             // 
             this.trackBar4.Location = new System.Drawing.Point(0, 224);
             this.trackBar4.Margin = new System.Windows.Forms.Padding(4);
-            this.trackBar4.Maximum = 500;
+            this.trackBar4.Maximum = 50;
             this.trackBar4.Name = "trackBar4";
             this.trackBar4.Size = new System.Drawing.Size(219, 56);
             this.trackBar4.TabIndex = 9;
             this.trackBar4.TickFrequency = 50;
+            this.trackBar4.Value = 5;
             this.trackBar4.Scroll += new System.EventHandler(this.trackBar4_Scroll);
             // 
             // trackBar5
             // 
             this.trackBar5.Location = new System.Drawing.Point(0, 287);
             this.trackBar5.Margin = new System.Windows.Forms.Padding(4);
-            this.trackBar5.Maximum = 4000;
+            this.trackBar5.Maximum = 5;
             this.trackBar5.Name = "trackBar5";
             this.trackBar5.Size = new System.Drawing.Size(219, 56);
             this.trackBar5.TabIndex = 10;
@@ -177,9 +176,9 @@
             this.label7.Location = new System.Drawing.Point(4, 204);
             this.label7.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(97, 16);
+            this.label7.Size = new System.Drawing.Size(121, 16);
             this.label7.TabIndex = 11;
-            this.label7.Text = "Flow amplitude";
+            this.label7.Text = "Accepted Distance";
             // 
             // label8
             // 
@@ -187,9 +186,9 @@
             this.label8.Location = new System.Drawing.Point(7, 267);
             this.label8.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(67, 16);
+            this.label8.Size = new System.Drawing.Size(61, 16);
             this.label8.TabIndex = 12;
-            this.label8.Text = "Flow level";
+            this.label8.Text = "Not used";
             // 
             // label9
             // 
@@ -217,13 +216,13 @@
             this.checkBox1.Location = new System.Drawing.Point(11, 336);
             this.checkBox1.Margin = new System.Windows.Forms.Padding(4);
             this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(112, 20);
+            this.checkBox1.Size = new System.Drawing.Size(180, 20);
             this.checkBox1.TabIndex = 15;
-            this.checkBox1.Text = "Auto correlate";
+            this.checkBox1.Text = "Int.egration weight./ geom";
             this.checkBox1.UseVisualStyleBackColor = true;
             this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
-            // CorrelateControl
+            // TranslateControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -244,7 +243,7 @@
             this.Controls.Add(this.trackBar2);
             this.Controls.Add(this.trackBar1);
             this.Margin = new System.Windows.Forms.Padding(4);
-            this.Name = "CorrelateControl";
+            this.Name = "TranslateControl";
             this.Size = new System.Drawing.Size(223, 361);
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar2)).EndInit();

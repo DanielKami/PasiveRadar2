@@ -14,25 +14,51 @@ namespace PasiveRadar
         SpriteBatch spriteBatch;
         Texture2D texture;
 
-        public void SetValues(Panel panelViewport_, SpriteBatch spriteBatch_, Texture2D texture_, float zoomX_,  float zoomY_ )
+        public void SetValues(Panel panelViewport_, SpriteBatch spriteBatch_, Texture2D texture_, float zoomX_, float zoomY_)
         {
             panelViewport = panelViewport_;
             spriteBatch = spriteBatch_;
             texture = texture_;
-            zoomX=zoomX_;
-            zoomY= zoomY_;
+            zoomX = zoomX_;
+            zoomY = zoomY_;
             if (zoomX > zoomY) zoom = zoomX;
             else
                 zoom = zoomY;
-            
+
         }
         public void Point(Vector2 p, Color col)
-        {             
-            spriteBatch.Draw(texture, p, null, col, 0,  new Vector2(0, 0), zoom, SpriteEffects.None, 0);
+        {
+            spriteBatch.Draw(texture, p, null, col, 0, new Vector2(0, 0), zoom, SpriteEffects.None, 0);
         }
+
+        public void Cross(GraphicsDeviceService serv, BasicEffect efect, Vector2 p, float radius, Color color)
+        {
+            Vector2 vector1 = new Vector2(p.X - radius, p.Y);
+            Vector2 vector2 = new Vector2(p.X + radius, p.Y);
+
+            Line(serv, efect, vector1, vector2, color);
+
+            vector1 = new Vector2(p.X, p.Y - radius);
+            vector2 = new Vector2(p.X, p.Y + radius);
+
+            Line(serv, efect, vector1, vector2, color);
+
+            //for (int i = -3; i < 4; i++)
+            //{
+            //    vector1 = new Vector2(p.X + i, p.Y);
+            //    Point(vector1, color);
+            //}
+            //for (int i = -2; i < 3; i++)
+            //{
+            //    vector1 = new Vector2(p.X, p.Y + i);
+            //    Point(vector1, color);
+            //}
+        }
+
+
         public void Pixel(Vector2 p, Color col)
         {
-            spriteBatch.Draw(texture, p, null, col, 0, new Vector2(0, 0), new Vector2( 10*zoom,zoom), SpriteEffects.None, 0);
+            spriteBatch.Draw(texture, p, null, col, 0, new Vector2(0, 0), new Vector2(10 * zoom, zoom), SpriteEffects.None, 0);
         }
         public void Point(GraphicsDeviceService serv, BasicEffect efect, int y, int x, Color col)
         {
@@ -40,7 +66,7 @@ namespace PasiveRadar
             {
                 float DimensionX = zoom;
                 float DimensionY = zoom;
-                Vector2 Position = new Vector2(x*zoom, panelViewport.Height - 50 - y * zoomY);
+                Vector2 Position = new Vector2(x * zoom, panelViewport.Height - 50 - y * zoomY);
                 FiledRectangle(serv, efect, Position, DimensionX, DimensionY, col, col);
             }
             catch (Exception ex)

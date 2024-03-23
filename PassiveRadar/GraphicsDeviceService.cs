@@ -138,7 +138,7 @@ namespace PasiveRadar
             ResetingDevice();
 
 
-            if (presentation_parameters == null) 
+            if (presentation_parameters == null)
                 MessageBox.Show("Presentation parameters is null.", "Important Message");
             try
             {

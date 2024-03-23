@@ -5,12 +5,12 @@ namespace PasiveRadar
 {
     public class Draw
     {
-        
+
         public static int LeftMargin = 30;
         public static int RightMargin = 20;
         public int BottomMargin = 40;
         public int TopMargin = 20;
-        
+
 
         public int ColorThemeNr;
 
@@ -51,13 +51,13 @@ namespace PasiveRadar
                     for (i = 0; i < 256; i++)
                         ColorTable[i + 256 * 3] = Color.FromNonPremultiplied(255, 0, 255 - i, alpha);
 
-                   
+
                     break;
 
                 case 1:
                     //Green 512
                     for (i = 0; i < 512; i++)
-                        ColorTable[i] = Color.FromNonPremultiplied(0,  0, i / 2, alpha);
+                        ColorTable[i] = Color.FromNonPremultiplied(0, 0, i / 2, alpha);
 
                     //Yellow 512
                     for (i = 0; i < 512; i++)
@@ -71,7 +71,7 @@ namespace PasiveRadar
                     break;
 
             }
-        }         
+        }
 
     }
 }

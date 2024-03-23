@@ -39,43 +39,42 @@
             this.button7 = new System.Windows.Forms.Button();
             this.radarControl1 = new PasiveRadar.RadarControl();
             this.button9 = new System.Windows.Forms.Button();
-            this.correlateControl1 = new PasiveRadar.CorrelateControl();
+            this.translateControl1 = new PasiveRadar.TranslateControl();
             this.label8 = new System.Windows.Forms.Label();
             this.splitContainer3 = new System.Windows.Forms.SplitContainer();
-            this.splitContainer7 = new System.Windows.Forms.SplitContainer();
+            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.panelViewport1 = new System.Windows.Forms.Panel();
             this.panelViewport3 = new System.Windows.Forms.Panel();
-            this.splitContainer8 = new System.Windows.Forms.SplitContainer();
-            this.panelViewport6 = new System.Windows.Forms.Panel();
-            this.panelViewport7 = new System.Windows.Forms.Panel();
+            this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.panelViewport2 = new System.Windows.Forms.Panel();
+            this.panelViewport4 = new System.Windows.Forms.Panel();
             this.splitContainer4 = new System.Windows.Forms.SplitContainer();
             this.label51 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.button3 = new System.Windows.Forms.Button();
+            this.label3 = new System.Windows.Forms.Label();
             this.buttonSetSettings2 = new System.Windows.Forms.Button();
             this.buttonSettings2 = new System.Windows.Forms.Button();
             this.buttonSetSettings1 = new System.Windows.Forms.Button();
             this.buttonSettings1 = new System.Windows.Forms.Button();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
-            this.buttonFrequencyEqual = new System.Windows.Forms.Button();
-            this.imageList3 = new System.Windows.Forms.ImageList(this.components);
             this.button1 = new System.Windows.Forms.Button();
+            this.imageList3 = new System.Windows.Forms.ImageList(this.components);
             this.panel2.SuspendLayout();
             this.flowLayoutPanel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).BeginInit();
             this.splitContainer3.Panel1.SuspendLayout();
             this.splitContainer3.Panel2.SuspendLayout();
             this.splitContainer3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainer7)).BeginInit();
-            this.splitContainer7.Panel1.SuspendLayout();
-            this.splitContainer7.Panel2.SuspendLayout();
-            this.splitContainer7.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainer8)).BeginInit();
-            this.splitContainer8.Panel1.SuspendLayout();
-            this.splitContainer8.Panel2.SuspendLayout();
-            this.splitContainer8.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
+            this.splitContainer1.Panel1.SuspendLayout();
+            this.splitContainer1.Panel2.SuspendLayout();
+            this.splitContainer1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
+            this.splitContainer2.Panel1.SuspendLayout();
+            this.splitContainer2.Panel2.SuspendLayout();
+            this.splitContainer2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer4)).BeginInit();
             this.splitContainer4.Panel1.SuspendLayout();
             this.splitContainer4.Panel2.SuspendLayout();
@@ -109,7 +108,7 @@
             this.flowLayoutPanel1.Controls.Add(this.button7);
             this.flowLayoutPanel1.Controls.Add(this.radarControl1);
             this.flowLayoutPanel1.Controls.Add(this.button9);
-            this.flowLayoutPanel1.Controls.Add(this.correlateControl1);
+            this.flowLayoutPanel1.Controls.Add(this.translateControl1);
             this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowLayoutPanel1.Location = new System.Drawing.Point(0, 0);
@@ -173,7 +172,7 @@
             this.radarControl1.Location = new System.Drawing.Point(5, 389);
             this.radarControl1.Margin = new System.Windows.Forms.Padding(5);
             this.radarControl1.Name = "radarControl1";
-            this.radarControl1.Size = new System.Drawing.Size(254, 979);
+            this.radarControl1.Size = new System.Drawing.Size(254, 1032);
             this.radarControl1.TabIndex = 60;
             this.radarControl1.Load += new System.EventHandler(this.radarControl1_Load);
             // 
@@ -185,22 +184,22 @@
             this.button9.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.button9.ImageIndex = 0;
             this.button9.ImageList = this.imageList2;
-            this.button9.Location = new System.Drawing.Point(0, 1373);
+            this.button9.Location = new System.Drawing.Point(0, 1426);
             this.button9.Margin = new System.Windows.Forms.Padding(0);
             this.button9.Name = "button9";
             this.button9.Size = new System.Drawing.Size(225, 30);
             this.button9.TabIndex = 61;
-            this.button9.Text = "Correlation";
+            this.button9.Text = "Translate";
             this.button9.UseVisualStyleBackColor = false;
             this.button9.Click += new System.EventHandler(this.button9_Click);
             // 
-            // correlateControl1
+            // translateControl1
             // 
-            this.correlateControl1.Location = new System.Drawing.Point(5, 1408);
-            this.correlateControl1.Margin = new System.Windows.Forms.Padding(5);
-            this.correlateControl1.Name = "correlateControl1";
-            this.correlateControl1.Size = new System.Drawing.Size(223, 362);
-            this.correlateControl1.TabIndex = 62;
+            this.translateControl1.Location = new System.Drawing.Point(5, 1461);
+            this.translateControl1.Margin = new System.Windows.Forms.Padding(5);
+            this.translateControl1.Name = "translateControl1";
+            this.translateControl1.Size = new System.Drawing.Size(223, 362);
+            this.translateControl1.TabIndex = 62;
             // 
             // label8
             // 
@@ -220,37 +219,49 @@
             // 
             // splitContainer3.Panel1
             // 
-            this.splitContainer3.Panel1.Controls.Add(this.splitContainer7);
+            this.splitContainer3.Panel1.Controls.Add(this.splitContainer1);
             // 
             // splitContainer3.Panel2
             // 
-            this.splitContainer3.Panel2.Controls.Add(this.panelViewport2);
+            this.splitContainer3.Panel2.Controls.Add(this.splitContainer2);
             this.splitContainer3.Size = new System.Drawing.Size(1160, 558);
-            this.splitContainer3.SplitterDistance = 365;
+            this.splitContainer3.SplitterDistance = 561;
             this.splitContainer3.SplitterWidth = 5;
             this.splitContainer3.TabIndex = 0;
             this.splitContainer3.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.splitContainer_SplitterMoved);
+            this.splitContainer3.MouseUp += new System.Windows.Forms.MouseEventHandler(this.splitContainer3_MouseUp);
             // 
-            // splitContainer7
+            // splitContainer1
             // 
-            this.splitContainer7.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer7.Location = new System.Drawing.Point(0, 0);
-            this.splitContainer7.Margin = new System.Windows.Forms.Padding(4);
-            this.splitContainer7.Name = "splitContainer7";
-            this.splitContainer7.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer1.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer1.Name = "splitContainer1";
+            this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
-            // splitContainer7.Panel1
+            // splitContainer1.Panel1
             // 
-            this.splitContainer7.Panel1.Controls.Add(this.panelViewport3);
+            this.splitContainer1.Panel1.Controls.Add(this.panelViewport1);
             // 
-            // splitContainer7.Panel2
+            // splitContainer1.Panel2
             // 
-            this.splitContainer7.Panel2.Controls.Add(this.splitContainer8);
-            this.splitContainer7.Size = new System.Drawing.Size(365, 558);
-            this.splitContainer7.SplitterDistance = 176;
-            this.splitContainer7.SplitterWidth = 5;
-            this.splitContainer7.TabIndex = 0;
-            this.splitContainer7.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.splitContainer_SplitterMoved);
+            this.splitContainer1.Panel2.Controls.Add(this.panelViewport3);
+            this.splitContainer1.Size = new System.Drawing.Size(561, 558);
+            this.splitContainer1.SplitterDistance = 279;
+            this.splitContainer1.TabIndex = 1;
+            this.splitContainer1.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.splitContainer1_SplitterMoved);
+            this.splitContainer1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.splitContainer1_MouseUp);
+            // 
+            // panelViewport1
+            // 
+            this.panelViewport1.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.panelViewport1.Cursor = System.Windows.Forms.Cursors.Cross;
+            this.panelViewport1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panelViewport1.Location = new System.Drawing.Point(0, 0);
+            this.panelViewport1.Name = "panelViewport1";
+            this.panelViewport1.Size = new System.Drawing.Size(561, 279);
+            this.panelViewport1.TabIndex = 1;
+            this.panelViewport1.SizeChanged += new System.EventHandler(this.panelViewport1_SizeChanged);
+            this.panelViewport1.ParentChanged += new System.EventHandler(this.panelViewport1_ParentChanged);
             // 
             // panelViewport3
             // 
@@ -258,55 +269,29 @@
             this.panelViewport3.Cursor = System.Windows.Forms.Cursors.Cross;
             this.panelViewport3.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelViewport3.Location = new System.Drawing.Point(0, 0);
-            this.panelViewport3.Margin = new System.Windows.Forms.Padding(4);
             this.panelViewport3.Name = "panelViewport3";
-            this.panelViewport3.Size = new System.Drawing.Size(365, 176);
-            this.panelViewport3.TabIndex = 29;
-            this.panelViewport3.MouseLeave += new System.EventHandler(this.panelViewport_MouseLeave);
-            this.panelViewport3.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panelViewport3_MouseMove);
+            this.panelViewport3.Size = new System.Drawing.Size(561, 275);
+            this.panelViewport3.TabIndex = 2;
             // 
-            // splitContainer8
+            // splitContainer2
             // 
-            this.splitContainer8.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer8.Location = new System.Drawing.Point(0, 0);
-            this.splitContainer8.Margin = new System.Windows.Forms.Padding(4);
-            this.splitContainer8.Name = "splitContainer8";
-            this.splitContainer8.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            this.splitContainer2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer2.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer2.Name = "splitContainer2";
+            this.splitContainer2.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
-            // splitContainer8.Panel1
+            // splitContainer2.Panel1
             // 
-            this.splitContainer8.Panel1.Controls.Add(this.panelViewport6);
+            this.splitContainer2.Panel1.Controls.Add(this.panelViewport2);
             // 
-            // splitContainer8.Panel2
+            // splitContainer2.Panel2
             // 
-            this.splitContainer8.Panel2.Controls.Add(this.panelViewport7);
-            this.splitContainer8.Size = new System.Drawing.Size(365, 377);
-            this.splitContainer8.SplitterDistance = 173;
-            this.splitContainer8.SplitterWidth = 5;
-            this.splitContainer8.TabIndex = 0;
-            this.splitContainer8.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.splitContainer_SplitterMoved);
-            // 
-            // panelViewport6
-            // 
-            this.panelViewport6.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.panelViewport6.Cursor = System.Windows.Forms.Cursors.Cross;
-            this.panelViewport6.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panelViewport6.Location = new System.Drawing.Point(0, 0);
-            this.panelViewport6.Margin = new System.Windows.Forms.Padding(4);
-            this.panelViewport6.Name = "panelViewport6";
-            this.panelViewport6.Size = new System.Drawing.Size(365, 173);
-            this.panelViewport6.TabIndex = 30;
-            // 
-            // panelViewport7
-            // 
-            this.panelViewport7.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.panelViewport7.Cursor = System.Windows.Forms.Cursors.Cross;
-            this.panelViewport7.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panelViewport7.Location = new System.Drawing.Point(0, 0);
-            this.panelViewport7.Margin = new System.Windows.Forms.Padding(4);
-            this.panelViewport7.Name = "panelViewport7";
-            this.panelViewport7.Size = new System.Drawing.Size(365, 199);
-            this.panelViewport7.TabIndex = 31;
+            this.splitContainer2.Panel2.Controls.Add(this.panelViewport4);
+            this.splitContainer2.Size = new System.Drawing.Size(594, 558);
+            this.splitContainer2.SplitterDistance = 279;
+            this.splitContainer2.TabIndex = 29;
+            this.splitContainer2.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.splitContainer2_SplitterMoved);
+            this.splitContainer2.MouseUp += new System.Windows.Forms.MouseEventHandler(this.splitContainer2_MouseUp);
             // 
             // panelViewport2
             // 
@@ -316,9 +301,19 @@
             this.panelViewport2.Location = new System.Drawing.Point(0, 0);
             this.panelViewport2.Margin = new System.Windows.Forms.Padding(4);
             this.panelViewport2.Name = "panelViewport2";
-            this.panelViewport2.Size = new System.Drawing.Size(790, 558);
-            this.panelViewport2.TabIndex = 28;
-            this.panelViewport2.Paint += new System.Windows.Forms.PaintEventHandler(this.panelViewport2_Paint);
+            this.panelViewport2.Size = new System.Drawing.Size(594, 279);
+            this.panelViewport2.TabIndex = 29;
+            // 
+            // panelViewport4
+            // 
+            this.panelViewport4.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.panelViewport4.Cursor = System.Windows.Forms.Cursors.Cross;
+            this.panelViewport4.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panelViewport4.Location = new System.Drawing.Point(0, 0);
+            this.panelViewport4.Margin = new System.Windows.Forms.Padding(4);
+            this.panelViewport4.Name = "panelViewport4";
+            this.panelViewport4.Size = new System.Drawing.Size(594, 275);
+            this.panelViewport4.TabIndex = 29;
             // 
             // splitContainer4
             // 
@@ -341,6 +336,7 @@
             this.splitContainer4.SplitterWidth = 5;
             this.splitContainer4.TabIndex = 36;
             this.splitContainer4.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.splitContainer_SplitterMoved);
+            this.splitContainer4.MouseUp += new System.Windows.Forms.MouseEventHandler(this.splitContainer4_MouseUp);
             // 
             // label51
             // 
@@ -353,15 +349,14 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.button3);
+            this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.buttonSetSettings2);
             this.groupBox1.Controls.Add(this.buttonSettings2);
             this.groupBox1.Controls.Add(this.buttonSetSettings1);
             this.groupBox1.Controls.Add(this.buttonSettings1);
-            this.groupBox1.Controls.Add(this.label3);
-            this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.button2);
             this.groupBox1.Controls.Add(this.label2);
-            this.groupBox1.Controls.Add(this.buttonFrequencyEqual);
             this.groupBox1.Controls.Add(this.label51);
             this.groupBox1.Controls.Add(this.button1);
             this.groupBox1.Dock = System.Windows.Forms.DockStyle.Top;
@@ -372,6 +367,25 @@
             this.groupBox1.Size = new System.Drawing.Size(1355, 71);
             this.groupBox1.TabIndex = 33;
             this.groupBox1.TabStop = false;
+            // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(525, 22);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(144, 28);
+            this.button3.TabIndex = 104;
+            this.button3.Text = "Map";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(321, 29);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(72, 16);
+            this.label3.TabIndex = 103;
+            this.label3.Text = "Nr recivers";
             // 
             // buttonSetSettings2
             // 
@@ -413,25 +427,6 @@
             this.buttonSettings1.UseVisualStyleBackColor = true;
             this.buttonSettings1.Click += new System.EventHandler(this.buttonSettings1_Click);
             // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(689, 26);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(92, 16);
-            this.label3.TabIndex = 98;
-            this.label3.Text = "Select reciver!";
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(528, 26);
-            this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(74, 16);
-            this.label1.TabIndex = 97;
-            this.label1.Text = "Frequency ";
-            // 
             // button2
             // 
             this.button2.Location = new System.Drawing.Point(0, 23);
@@ -455,21 +450,19 @@
             this.label2.TabIndex = 95;
             this.label2.Text = "v. 1.50";
             // 
-            // buttonFrequencyEqual
+            // button1
             // 
-            this.buttonFrequencyEqual.BackColor = System.Drawing.Color.Transparent;
-            this.buttonFrequencyEqual.FlatAppearance.BorderSize = 0;
-            this.buttonFrequencyEqual.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.buttonFrequencyEqual.ForeColor = System.Drawing.Color.Transparent;
-            this.buttonFrequencyEqual.ImageIndex = 0;
-            this.buttonFrequencyEqual.ImageList = this.imageList3;
-            this.buttonFrequencyEqual.Location = new System.Drawing.Point(609, 14);
-            this.buttonFrequencyEqual.Margin = new System.Windows.Forms.Padding(4);
-            this.buttonFrequencyEqual.Name = "buttonFrequencyEqual";
-            this.buttonFrequencyEqual.Size = new System.Drawing.Size(39, 41);
-            this.buttonFrequencyEqual.TabIndex = 92;
-            this.buttonFrequencyEqual.UseVisualStyleBackColor = false;
-            this.buttonFrequencyEqual.Click += new System.EventHandler(this.buttonFrequencyEqual_Click);
+            this.button1.FlatAppearance.BorderSize = 0;
+            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button1.ImageIndex = 0;
+            this.button1.ImageList = this.imageList1;
+            this.button1.Location = new System.Drawing.Point(196, 13);
+            this.button1.Margin = new System.Windows.Forms.Padding(4);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(63, 52);
+            this.button1.TabIndex = 27;
+            this.button1.UseVisualStyleBackColor = false;
+            this.button1.Click += new System.EventHandler(this.buttonStart_Click);
             // 
             // imageList3
             // 
@@ -477,20 +470,6 @@
             this.imageList3.TransparentColor = System.Drawing.Color.White;
             this.imageList3.Images.SetKeyName(0, "locked.jpg");
             this.imageList3.Images.SetKeyName(1, "unlocked.jpg");
-            // 
-            // button1
-            // 
-            this.button1.FlatAppearance.BorderSize = 0;
-            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button1.ImageIndex = 0;
-            this.button1.ImageList = this.imageList1;
-            this.button1.Location = new System.Drawing.Point(259, 13);
-            this.button1.Margin = new System.Windows.Forms.Padding(4);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(63, 52);
-            this.button1.TabIndex = 27;
-            this.button1.UseVisualStyleBackColor = false;
-            this.button1.Click += new System.EventHandler(this.buttonStart_Click);
             // 
             // Form1
             // 
@@ -504,12 +483,12 @@
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "Pasive Radar";
+            this.MaximumSizeChanged += new System.EventHandler(this.Form1_MaximumSizeChanged);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
-            this.Load += new System.EventHandler(this.Form1_Load);
             this.Shown += new System.EventHandler(this.Form1_Shown);
             this.ResizeBegin += new System.EventHandler(this.Form1_ResizeBegin);
             this.ResizeEnd += new System.EventHandler(this.Form1_ResizeEnd);
-            this.SizeChanged += new System.EventHandler(this.Form1_SizeChanged);
+            this.ClientSizeChanged += new System.EventHandler(this.Form1_ClientSizeChanged);
             this.Resize += new System.EventHandler(this.Form1_Resize);
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
@@ -518,14 +497,14 @@
             this.splitContainer3.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).EndInit();
             this.splitContainer3.ResumeLayout(false);
-            this.splitContainer7.Panel1.ResumeLayout(false);
-            this.splitContainer7.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainer7)).EndInit();
-            this.splitContainer7.ResumeLayout(false);
-            this.splitContainer8.Panel1.ResumeLayout(false);
-            this.splitContainer8.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainer8)).EndInit();
-            this.splitContainer8.ResumeLayout(false);
+            this.splitContainer1.Panel1.ResumeLayout(false);
+            this.splitContainer1.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
+            this.splitContainer1.ResumeLayout(false);
+            this.splitContainer2.Panel1.ResumeLayout(false);
+            this.splitContainer2.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
+            this.splitContainer2.ResumeLayout(false);
             this.splitContainer4.Panel1.ResumeLayout(false);
             this.splitContainer4.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer4)).EndInit();
@@ -542,7 +521,6 @@
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.SplitContainer splitContainer3;
-        private System.Windows.Forms.Panel panelViewport3;
         private System.Windows.Forms.SplitContainer splitContainer4;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
         private System.Windows.Forms.ImageList imageList2;
@@ -554,24 +532,23 @@
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Button button7;
         private RadarControl radarControl1;
- 
-        private System.Windows.Forms.Button buttonFrequencyEqual;
         private System.Windows.Forms.ImageList imageList3;
-        private System.Windows.Forms.SplitContainer splitContainer7;
-        private System.Windows.Forms.Panel panelViewport6;
         private System.Windows.Forms.Button button9;
-        private CorrelateControl correlateControl1;
-        private System.Windows.Forms.SplitContainer splitContainer8;
-        private System.Windows.Forms.Panel panelViewport7;
+        private TranslateControl translateControl1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button button2;
-        private System.Windows.Forms.Panel panelViewport2;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Button buttonSetSettings2;
         private System.Windows.Forms.Button buttonSettings2;
         private System.Windows.Forms.Button buttonSetSettings1;
         private System.Windows.Forms.Button buttonSettings1;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.SplitContainer splitContainer1;
+        private System.Windows.Forms.Panel panelViewport1;
+        private System.Windows.Forms.Panel panelViewport3;
+        private System.Windows.Forms.SplitContainer splitContainer2;
+        private System.Windows.Forms.Panel panelViewport2;
+        private System.Windows.Forms.Panel panelViewport4;
+        private System.Windows.Forms.Button button3;
     }
 }
 

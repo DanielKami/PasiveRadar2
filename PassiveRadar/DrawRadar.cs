@@ -1,7 +1,9 @@
 ﻿
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SDRdue;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
 
@@ -30,7 +32,7 @@ namespace PasiveRadar
         float zoomX, zoomY;
         uint Rows, Columns;
         Vector2[] p;
-        private int x_ticks = 22;
+        private int x_ticks = 8;
         private float x_step;
         float center;
         //private int zoom_half;
@@ -44,8 +46,20 @@ namespace PasiveRadar
         private float Up;
         private float y_ticks = 21;
         private float scaleYfactor;
-        //private float BufferRate;
-        private float c = 299792458f; //Speed of light m/s
+        private uint ColReducedRoes = 1;
+        private int ReducedRows;
+        //struct MapPoints
+        //{
+        //    public int i;//index columns
+        //    public int j;//index rows (reduced)
+        //    public uint size;
+        //};
+
+        //      List<MapPoints> ListMap = new List<MapPoints>();
+
+
+
+        private readonly float c = 299792458f; //Speed of light m/s
         float ActivePlotAreaX;
         float ActivePlotAreaY;
         int y_bottom;
@@ -56,18 +70,17 @@ namespace PasiveRadar
         private int latency = 10;
 
         public void SizeChanged(Panel panelViewport, GraphicsDevice graphicsDevice, GraphicsDeviceService _service, SpriteBatch _spriteBatch, SpriteFont _spriteFont, BasicEffect _mSimpleEffect, Texture2D _texture)
-
         {
             service = _service;
             spriteBatch = _spriteBatch;
             spriteFont = _spriteFont;
             mSimpleEffect = _mSimpleEffect;
             texture = _texture;
-            DrawPrepare(panelViewport);
+            DrawPrepare(panelViewport, null);
         }
 
 
-        public void DrawPrepare(Panel panelViewport, Flags flags = null)
+        public void DrawPrepare(Panel panelViewport, Flags flags)
         {
 
             lock (LockRadar)
@@ -83,6 +96,7 @@ namespace PasiveRadar
                     frequency = flags.frequency[0];
                     sample_rate = flags.rate[0];
                 }
+
                 x_left = LeftMargin + 15;
                 y_bottom = panelViewport.Height - BottomMargin - 30;
                 ActivePlotAreaX = panelViewport.Width - x_left - RightMargin;
@@ -105,21 +119,29 @@ namespace PasiveRadar
 
                 p = new Vector2[ColRow];
 
-                uint index_i;
+                int index_i;
                 float x;
-                for (uint i = 0; i < Columns; i++)
+                if (flags != null)
                 {
-                    x = x_left + i * zoomX;
-                    index_i = i * Rows;
+                    ReducedRows = (int)(flags.Rows / flags.NrReduceRows);
+                    ColReducedRoes = flags.Columns * (uint)ReducedRows;
 
-                    for (uint j = 0; j < Rows; j++)
+                    for (int i = 0; i < Columns; i++)
                     {
-                        p[index_i + j].Y = y_bottom - (j + 1) * zoomY;
-                        p[index_i + j].X = x;
-                    }
-                }
+                        x = x_left + i * zoomX;
+                        index_i = i * ReducedRows;
 
+                        for (uint j = 0; j < ReducedRows; j++)
+                        {
+                            p[index_i + j] = new Vector2(x, y_bottom - (j * flags.NrReduceRows + 1) * zoomY);
+                        }
+                    }
+
+
+                }
                 ColorTableSize_ = Flags.ColorTableSize - 1;
+
+
 
                 ////////////////////////////////////////////////////////////////
 
@@ -134,11 +156,10 @@ namespace PasiveRadar
             }
         }
 
-        public void Scene(Panel panelViewport, float[] data, bool DrawScale)
+        public void Scene(float[] data, Flags flags, List<Finder.MapPoints> pointFromRadar = null, bool DrawScale = true)
         {
 
             //Calculate frames per second
-
             if (DrawScale)
             {
                 frames++;
@@ -148,26 +169,22 @@ namespace PasiveRadar
                     frames = 0;
                     watch.Restart();
 
-
-                    //Slow it down a bit 
-                    if (frames_per_sec > 33)
-                        latency++;
-                    else if (frames_per_sec < 30)
-                        latency--;
-                    if (latency < 0) latency = 0;
                 }
-                System.Threading.Thread.Sleep(latency);
+                //  System.Threading.Thread.Sleep(1);
             }
+
+
 
             service.GraphicsDevice.Clear(Color.Black);
 
             spriteBatch.Begin();
 
-
             int col;
-            if (data.Length == ColRow && p.Length == ColRow)
+            //The bistatic map
+            //The slowest part
+            if (data.Length == ColRow && p.Length == ColRow && flags != null)
             {
-                for (uint i = 0; i < data.Length; i++)
+                for (uint i = 0; i < ColReducedRoes; i++)
                 {
                     col = (int)(data[i]);
                     if (col > 0)
@@ -179,27 +196,37 @@ namespace PasiveRadar
                 }
             }
 
-
             if (DrawScale)
             {
-                this.spriteBatch.Draw(texture, new Rectangle(0, y_bottom, panelViewport.Width, 1), Color.White);
+                this.spriteBatch.Draw(texture, new Rectangle(0, y_bottom, service.GraphicsDevice.Viewport.Width, 1), Color.White);
                 string drawString;
 
-                spriteBatch.DrawString(spriteFont, "Doppler speed (km/h)", new Vector2(panelViewport.Width / 2 - 30, panelViewport.Height - 15), Color.White, 0, new Vector2(0, 0), 0.27f, SpriteEffects.None, 0);
-                spriteBatch.DrawString(spriteFont, "Radar", new Vector2(panelViewport.Width - 50, 1), graphisc.white, 0, new Vector2(0, 0), 0.3f, SpriteEffects.None, 0);
+                spriteBatch.DrawString(spriteFont, "Doppler speed (km/h)", new Vector2(service.GraphicsDevice.Viewport.Width / 2 - 30, service.GraphicsDevice.Viewport.Height - 15), Color.White, 0, new Vector2(0, 0), 0.27f, SpriteEffects.None, 0);
+                spriteBatch.DrawString(spriteFont, "Radar", new Vector2(service.GraphicsDevice.Viewport.Width - 50, 1), graphisc.white, 0, new Vector2(0, 0), 0.3f, SpriteEffects.None, 0);
 
                 //Additional info frames/sec
-                drawString = "                  " + frames_per_sec + " fps    " + Form1.calculations_per_sec + "     calculations/s    " + Rows + "x" + Columns + "    Device: " + DeviceName;
+                drawString = "                  " + frames_per_sec + " fps    " + Form1.calculations_per_sec + " calc./s      " + Rows + " x " + Columns + "    Device: " + DeviceName;
                 spriteBatch.DrawString(spriteFont, drawString, new Vector2(1 + LeftMargin, 0), graphisc.white, 0, new Vector2(0, 0), 0.3f, SpriteEffects.None, 0);
-
 
                 spriteBatch.End();
                 spriteBatch.Begin();
-                ScaleX(panelViewport.Width, panelViewport.Height);
-                ScaleY(panelViewport.Width, panelViewport.Height);
+                ScaleX(service.GraphicsDevice.Viewport.Width, service.GraphicsDevice.Viewport.Height);
+                ScaleY(service.GraphicsDevice.Viewport.Width, service.GraphicsDevice.Viewport.Height);
             }
-            spriteBatch.End();
 
+
+            //Show found objects
+            if (pointFromRadar != null)
+            {
+                for (int n = 0; n < pointFromRadar.Count; n++)
+                {
+                    int index = pointFromRadar[n].row * ReducedRows + pointFromRadar[n].col;
+
+                    graphisc.Cross(service, mSimpleEffect, p[index], 8, Color.Red);
+                }
+            }
+
+            spriteBatch.End();
         }
 
         private void ScaleX(float Width, float Height)
@@ -221,8 +248,6 @@ namespace PasiveRadar
                     drawString = "" + ScaleValue.ToString("0.0"); // Doppler speed
                 else
                     drawString = "" + ScaleValue.ToString("0.00"); // Doppler speed
-
-
 
 
                 float lt = spriteFont.MeasureString(drawString).Length() / 9;
@@ -247,7 +272,5 @@ namespace PasiveRadar
                 }
             }
         }
-
-
     }
 }

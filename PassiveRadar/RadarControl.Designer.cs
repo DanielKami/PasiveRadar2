@@ -59,7 +59,6 @@
             this.label18 = new System.Windows.Forms.Label();
             this.label19 = new System.Windows.Forms.Label();
             this.label20 = new System.Windows.Forms.Label();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.label8 = new System.Windows.Forms.Label();
             this.trackBar10 = new System.Windows.Forms.TrackBar();
             this.label21 = new System.Windows.Forms.Label();
@@ -71,6 +70,9 @@
             this.checkBoxFreeze = new System.Windows.Forms.CheckBox();
             this.label25 = new System.Windows.Forms.Label();
             this.label26 = new System.Windows.Forms.Label();
+            this.trackBar11 = new System.Windows.Forms.TrackBar();
+            this.label27 = new System.Windows.Forms.Label();
+            this.label28 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar4)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar2)).BeginInit();
@@ -82,6 +84,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.trackBar9)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar10)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar_alpha)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBar11)).BeginInit();
             this.SuspendLayout();
             // 
             // comboBox1
@@ -158,12 +161,12 @@
             // checkBox4
             // 
             this.checkBox4.AutoSize = true;
-            this.checkBox4.Location = new System.Drawing.Point(7, 492);
+            this.checkBox4.Location = new System.Drawing.Point(7, 575);
             this.checkBox4.Margin = new System.Windows.Forms.Padding(4);
             this.checkBox4.Name = "checkBox4";
-            this.checkBox4.Size = new System.Drawing.Size(149, 20);
+            this.checkBox4.Size = new System.Drawing.Size(187, 20);
             this.checkBox4.TabIndex = 53;
-            this.checkBox4.Text = "Remove symetrices";
+            this.checkBox4.Text = "Reduce symmetric signals";
             this.checkBox4.UseVisualStyleBackColor = true;
             this.checkBox4.CheckedChanged += new System.EventHandler(this.checkBox4_CheckedChanged);
             // 
@@ -324,7 +327,7 @@
             // checkBox3
             // 
             this.checkBox3.AutoSize = true;
-            this.checkBox3.Location = new System.Drawing.Point(7, 520);
+            this.checkBox3.Location = new System.Drawing.Point(7, 603);
             this.checkBox3.Margin = new System.Windows.Forms.Padding(4);
             this.checkBox3.Name = "checkBox3";
             this.checkBox3.Size = new System.Drawing.Size(151, 20);
@@ -336,7 +339,7 @@
             // trackBar7
             // 
             this.trackBar7.LargeChange = 1;
-            this.trackBar7.Location = new System.Drawing.Point(3, 707);
+            this.trackBar7.Location = new System.Drawing.Point(3, 777);
             this.trackBar7.Margin = new System.Windows.Forms.Padding(4);
             this.trackBar7.Maximum = 30;
             this.trackBar7.Minimum = 2;
@@ -351,7 +354,7 @@
             // label14
             // 
             this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(-1, 687);
+            this.label14.Location = new System.Drawing.Point(-1, 757);
             this.label14.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(122, 16);
@@ -361,7 +364,7 @@
             // label15
             // 
             this.label15.AutoSize = true;
-            this.label15.Location = new System.Drawing.Point(162, 687);
+            this.label15.Location = new System.Drawing.Point(162, 757);
             this.label15.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label15.Name = "label15";
             this.label15.Size = new System.Drawing.Size(14, 16);
@@ -371,7 +374,7 @@
             // trackBar8
             // 
             this.trackBar8.LargeChange = 1;
-            this.trackBar8.Location = new System.Drawing.Point(0, 770);
+            this.trackBar8.Location = new System.Drawing.Point(0, 840);
             this.trackBar8.Margin = new System.Windows.Forms.Padding(4);
             this.trackBar8.Maximum = 100;
             this.trackBar8.Minimum = 1;
@@ -386,7 +389,7 @@
             // label16
             // 
             this.label16.AutoSize = true;
-            this.label16.Location = new System.Drawing.Point(-1, 750);
+            this.label16.Location = new System.Drawing.Point(-1, 820);
             this.label16.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label16.Name = "label16";
             this.label16.Size = new System.Drawing.Size(98, 16);
@@ -396,7 +399,7 @@
             // label17
             // 
             this.label17.AutoSize = true;
-            this.label17.Location = new System.Drawing.Point(162, 750);
+            this.label17.Location = new System.Drawing.Point(162, 820);
             this.label17.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label17.Name = "label17";
             this.label17.Size = new System.Drawing.Size(14, 16);
@@ -406,7 +409,7 @@
             // trackBar9
             // 
             this.trackBar9.LargeChange = 1;
-            this.trackBar9.Location = new System.Drawing.Point(2, 841);
+            this.trackBar9.Location = new System.Drawing.Point(2, 911);
             this.trackBar9.Margin = new System.Windows.Forms.Padding(4);
             this.trackBar9.Maximum = 100;
             this.trackBar9.Name = "trackBar9";
@@ -420,7 +423,7 @@
             // label18
             // 
             this.label18.AutoSize = true;
-            this.label18.Location = new System.Drawing.Point(-1, 821);
+            this.label18.Location = new System.Drawing.Point(-1, 891);
             this.label18.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label18.Name = "label18";
             this.label18.Size = new System.Drawing.Size(109, 16);
@@ -430,7 +433,7 @@
             // label19
             // 
             this.label19.AutoSize = true;
-            this.label19.Location = new System.Drawing.Point(162, 821);
+            this.label19.Location = new System.Drawing.Point(162, 891);
             this.label19.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label19.Name = "label19";
             this.label19.Size = new System.Drawing.Size(14, 16);
@@ -448,34 +451,21 @@
             this.label20.Text = "Distance shift";
             this.label20.Click += new System.EventHandler(this.label20_Click);
             // 
-            // checkBox1
-            // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(11, 11);
-            this.checkBox1.Margin = new System.Windows.Forms.Padding(4);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(138, 20);
-            this.checkBox1.TabIndex = 87;
-            this.checkBox1.Tag = "bal";
-            this.checkBox1.Text = "Two dongle mode";
-            this.checkBox1.UseVisualStyleBackColor = true;
-            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged_1);
-            // 
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(4, 573);
+            this.label8.Location = new System.Drawing.Point(4, 665);
             this.label8.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(74, 16);
+            this.label8.Size = new System.Drawing.Size(71, 16);
             this.label8.TabIndex = 88;
-            this.label8.Text = "Sc ale type";
+            this.label8.Text = "Scale type";
             this.label8.Click += new System.EventHandler(this.label8_Click);
             // 
             // trackBar10
             // 
             this.trackBar10.LargeChange = 1;
-            this.trackBar10.Location = new System.Drawing.Point(11, 593);
+            this.trackBar10.Location = new System.Drawing.Point(11, 685);
             this.trackBar10.Margin = new System.Windows.Forms.Padding(4);
             this.trackBar10.Maximum = 2;
             this.trackBar10.Name = "trackBar10";
@@ -489,7 +479,7 @@
             // label21
             // 
             this.label21.AutoSize = true;
-            this.label21.Location = new System.Drawing.Point(25, 623);
+            this.label21.Location = new System.Drawing.Point(25, 715);
             this.label21.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label21.Name = "label21";
             this.label21.Size = new System.Drawing.Size(20, 16);
@@ -499,7 +489,7 @@
             // label22
             // 
             this.label22.AutoSize = true;
-            this.label22.Location = new System.Drawing.Point(77, 623);
+            this.label22.Location = new System.Drawing.Point(77, 715);
             this.label22.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label22.Name = "label22";
             this.label22.Size = new System.Drawing.Size(54, 16);
@@ -509,7 +499,7 @@
             // label23
             // 
             this.label23.AutoSize = true;
-            this.label23.Location = new System.Drawing.Point(147, 623);
+            this.label23.Location = new System.Drawing.Point(147, 715);
             this.label23.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label23.Name = "label23";
             this.label23.Size = new System.Drawing.Size(24, 16);
@@ -519,7 +509,7 @@
             // label24
             // 
             this.label24.AutoSize = true;
-            this.label24.Location = new System.Drawing.Point(1, 901);
+            this.label24.Location = new System.Drawing.Point(1, 971);
             this.label24.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label24.Name = "label24";
             this.label24.Size = new System.Drawing.Size(42, 16);
@@ -529,7 +519,7 @@
             // label_alpha
             // 
             this.label_alpha.AutoSize = true;
-            this.label_alpha.Location = new System.Drawing.Point(163, 901);
+            this.label_alpha.Location = new System.Drawing.Point(163, 971);
             this.label_alpha.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label_alpha.Name = "label_alpha";
             this.label_alpha.Size = new System.Drawing.Size(14, 16);
@@ -539,7 +529,7 @@
             // trackBar_alpha
             // 
             this.trackBar_alpha.LargeChange = 1;
-            this.trackBar_alpha.Location = new System.Drawing.Point(0, 925);
+            this.trackBar_alpha.Location = new System.Drawing.Point(0, 995);
             this.trackBar_alpha.Margin = new System.Windows.Forms.Padding(4);
             this.trackBar_alpha.Maximum = 255;
             this.trackBar_alpha.Name = "trackBar_alpha";
@@ -553,7 +543,7 @@
             // checkBoxFreeze
             // 
             this.checkBoxFreeze.AutoSize = true;
-            this.checkBoxFreeze.Location = new System.Drawing.Point(7, 548);
+            this.checkBoxFreeze.Location = new System.Drawing.Point(7, 631);
             this.checkBoxFreeze.Margin = new System.Windows.Forms.Padding(4);
             this.checkBoxFreeze.Name = "checkBoxFreeze";
             this.checkBoxFreeze.Size = new System.Drawing.Size(150, 20);
@@ -575,16 +565,52 @@
             // label26
             // 
             this.label26.AutoSize = true;
-            this.label26.Location = new System.Drawing.Point(8, 314);
+            this.label26.Location = new System.Drawing.Point(4, 314);
             this.label26.Name = "label26";
             this.label26.Size = new System.Drawing.Size(88, 16);
             this.label26.TabIndex = 99;
             this.label26.Text = "GPU memory";
             // 
+            // trackBar11
+            // 
+            this.trackBar11.LargeChange = 1;
+            this.trackBar11.Location = new System.Drawing.Point(0, 520);
+            this.trackBar11.Margin = new System.Windows.Forms.Padding(4);
+            this.trackBar11.Minimum = 1;
+            this.trackBar11.Name = "trackBar11";
+            this.trackBar11.Size = new System.Drawing.Size(222, 56);
+            this.trackBar11.TabIndex = 100;
+            this.trackBar11.TabStop = false;
+            this.trackBar11.TickFrequency = 100;
+            this.trackBar11.Value = 10;
+            this.trackBar11.Scroll += new System.EventHandler(this.trackBar11_Scroll);
+            // 
+            // label27
+            // 
+            this.label27.AutoSize = true;
+            this.label27.Location = new System.Drawing.Point(4, 500);
+            this.label27.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label27.Name = "label27";
+            this.label27.Size = new System.Drawing.Size(92, 16);
+            this.label27.TabIndex = 101;
+            this.label27.Text = "Reduce Rows";
+            // 
+            // label28
+            // 
+            this.label28.AutoSize = true;
+            this.label28.Location = new System.Drawing.Point(163, 500);
+            this.label28.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label28.Name = "label28";
+            this.label28.Size = new System.Drawing.Size(14, 16);
+            this.label28.TabIndex = 102;
+            this.label28.Text = "0";
+            // 
             // RadarControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.label28);
+            this.Controls.Add(this.label27);
             this.Controls.Add(this.label26);
             this.Controls.Add(this.label25);
             this.Controls.Add(this.checkBoxFreeze);
@@ -596,7 +622,6 @@
             this.Controls.Add(this.label21);
             this.Controls.Add(this.trackBar10);
             this.Controls.Add(this.label8);
-            this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.label5);
@@ -628,9 +653,10 @@
             this.Controls.Add(this.trackBar4);
             this.Controls.Add(this.trackBar3);
             this.Controls.Add(this.trackBar2);
+            this.Controls.Add(this.trackBar11);
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "RadarControl";
-            this.Size = new System.Drawing.Size(222, 981);
+            this.Size = new System.Drawing.Size(222, 1051);
             this.Load += new System.EventHandler(this.RadarControl_Load);
             ((System.ComponentModel.ISupportInitialize)(this.trackBar4)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar3)).EndInit();
@@ -643,6 +669,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.trackBar9)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar10)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar_alpha)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBar11)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -681,7 +708,6 @@
         private System.Windows.Forms.Label label18;
         private System.Windows.Forms.Label label19;
         private System.Windows.Forms.Label label20;
-        private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.TrackBar trackBar10;
         private System.Windows.Forms.Label label21;
@@ -693,5 +719,8 @@
         private System.Windows.Forms.CheckBox checkBoxFreeze;
         private System.Windows.Forms.Label label25;
         private System.Windows.Forms.Label label26;
+        private System.Windows.Forms.TrackBar trackBar11;
+        private System.Windows.Forms.Label label27;
+        private System.Windows.Forms.Label label28;
     }
 }

@@ -1,8 +1,6 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
+﻿using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.IO;
 using System.Windows.Forms;
 
 namespace PasiveRadar
@@ -53,13 +51,13 @@ namespace PasiveRadar
         }
 
         //Start rander the scene
-        public void RenderWave(double[] data)
+        public void RenderWave(double[] data, double average, uint lost)//
         {
             if (data.Length < mDrawWave.BufferSize) return;
             if (resizing) return;
 
             if (this.service.GraphicsDevice != null)
-                mDrawWave.Scene(panelViewport, data, dongle_nr);
+                mDrawWave.Scene(panelViewport, data, dongle_nr, average, lost);//
 
             try
             {

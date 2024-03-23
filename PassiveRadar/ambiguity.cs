@@ -13,7 +13,7 @@ namespace PasiveRadar
         public static extern int Initialize(uint BufferSize, uint col, uint row, float doopler_shift, short[] Name);
 
         [System.Runtime.InteropServices.DllImport(@"Ambiguity.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int Run(int[] Data_In0, int[] Data_In1, float[] Data_Out, float amplification, float doppler_zoom, int shift, bool mode, short scale_type, bool remove_symetric);
+        public static extern int Run(short[] Data_In0, short[] Data_In1, float[] Data_Out, float amplification, float doppler_zoom, int shift, bool mode, short scale_type, bool remove_symetric);
 
         [System.Runtime.InteropServices.DllImport(@"Ambiguity.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int Release();
@@ -33,45 +33,20 @@ namespace PasiveRadar
                 if (name[i] > 32 && name[i] < 126)
                     flags.DeviceName += (char)name[i];
 
-
             if (err < 0)
             {
                 String str = "CUDA error. " + err;
                 MessageBox.Show(str);
-                StopGPU();
             }
         }
 
-         public void StartGPU(int[] In0, int[] In1, float[] Out, Flags flags)
+        public void ProcessGPU(short[] In0, short[] In1, float[] Out, Flags flags)
         {
-            if (ThreadGPU == null) ThreadGPU = new Thread(() => ProcessGPU(In0, In1, Out, flags));
-
-            if (ThreadGPU != null)
-            {
-                ThreadGPU.Name = "Thread GPU";
-                ThreadGPU.Priority = System.Threading.ThreadPriority.AboveNormal;
-                ThreadGPU.Start();
-            }
-        }
-
-        public void StopGPU()
-        {
-            if (ThreadGPU != null)
-            {
-                ThreadGPU.Join();//wait for thread termination
-                ThreadGPU = null;
-            }
-        }
-
-        void ProcessGPU(int[] In0, int[] In1, float[] Out, Flags flags)
-        {
-            //flags.Columns * flags.rows + flags.Columns;
-            //The size can be different than dellared in buffer prepare, so it is better to set it constant
-            var dataRadar = new float[4000 * 1000 + 1000];
+            var dataRadar = new float[Out.Length + flags.Rows];
 
             try
             {
-                int err = Run(In0, In1, dataRadar, flags.PasiveGain, flags.DopplerZoom, flags.DistanceShift, flags.TwoDonglesMode, flags.scale_type, flags.remove_symetrics);
+                int err = Run(In0, In1, dataRadar, flags.PasiveGain, flags.DopplerZoom, flags.DistanceShift, false, flags.scale_type, flags.remove_symetrics);
                 if (err < 0)
                 {
                     String str = "CUDA error. " + err;
@@ -86,7 +61,7 @@ namespace PasiveRadar
 
             lock (LockMem)
             {
-                System.Buffer.BlockCopy(dataRadar, 0, Out, 0, sizeof(float)*Out.Length);
+                System.Buffer.BlockCopy(dataRadar, 0, Out, 0, Out.Length * sizeof(float));
             }
         }
 
