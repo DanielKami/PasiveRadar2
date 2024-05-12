@@ -89,11 +89,7 @@ namespace PasiveRadar
         public static extern int Sdrplay_read_sync(IntPtr dev, IntPtr buf, UInt16 len, ref UInt16 readed, ref UInt32 lost);
 
         [System.Runtime.InteropServices.DllImport(@"SDRplay.dll", CallingConvention = CallingConvention.Cdecl)]
-<<<<<<< HEAD
-        public static extern UInt16 Sdrplay_BufforSize(IntPtr dev);
-=======
         public static extern UInt16 Sdrplay_BufforSize(IntPtr dev, UInt16 len);
->>>>>>> Wymagane
         #endregion
 
 
@@ -373,14 +369,10 @@ namespace PasiveRadar
         }
 
         //function define internal buffer size 
-<<<<<<< HEAD
-        public UInt16 get_BufforSize()
-=======
         public UInt16 get_BufforSize(UInt16 len)
->>>>>>> Wymagane
         {
             if (dev != IntPtr.Zero)
-                return Sdrplay_BufforSize(dev);
+                return Sdrplay_BufforSize(dev, len);
             else
                 return 1024 * 5;
         }   

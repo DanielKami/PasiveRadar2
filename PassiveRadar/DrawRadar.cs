@@ -106,11 +106,7 @@ namespace PasiveRadar
 
                 // This is the Doppler shift change between ticks according to Max Manning dopplerfish.com
                 r_b_c = (float)(sample_rate * Columns / ActivePlotAreaX / (doppler_zoom) * c / frequency / 100f); // TODO: / doppler_zoom; is in m/s
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> Wymagane
                 ColRow = Columns * Rows;
 
                 p = new Vector2[ColRow];

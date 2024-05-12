@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows;
 
@@ -70,12 +69,8 @@ namespace PasiveRadar
             Stop();
             //gap = (int)flags.Radio_buffer_size * 2;
             BufferSize = (int)flags.BufferSize;
-<<<<<<< HEAD
-            RadioInternalBufferSize = (uint)Math.Pow(2, 5) * 1024;//flags.Radio_buffer_size
-=======
             RadioInternalBufferSize = flags.Radio_buffer_size;
             dll.get_BufforSize(RadioInternalBufferSize);
->>>>>>> Wymagane
             dataIQ = new Int16[(int)flags.BufferSize];
         }
 
@@ -94,7 +89,7 @@ namespace PasiveRadar
         }
 
         //SDRplay
-      //  [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
+        //  [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
         public void Stop()
         {
 
@@ -347,21 +342,19 @@ namespace PasiveRadar
             if (format == DLL_RSP1.format_t.MIRISDR_FORMAT_504_S8)
             {
                 bit8 = true;
-                Radio_buffer_size = dll.get_BufforSize();
+                Radio_buffer_size = dll.get_BufforSize(RadioInternalBufferSize);
+                dll.InitBuffer(Radio_buffer_size * 4);
             }
             else
             {
                 bit8 = false;
 
-<<<<<<< HEAD
-                int temp = dll.get_BufforSize() / 2;
-=======
                 int temp = dll.get_BufforSize(RadioInternalBufferSize) / 2;
->>>>>>> Wymagane
                 Radio_buffer_size = (ushort)temp;
+                dll.InitBuffer(Radio_buffer_size * 2);
             }
 
-            dll.InitBuffer(Radio_buffer_size * 2);
+
             Int16[] data_dongle = new Int16[Radio_buffer_size];
             Array.Clear(data_dongle, 0, Radio_buffer_size);
             int reduced_buffer_size = BufferSize - Radio_buffer_size;

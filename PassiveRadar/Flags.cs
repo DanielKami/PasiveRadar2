@@ -8,11 +8,7 @@ namespace PasiveRadar
 {
     public class Flags
     {
-<<<<<<< HEAD
-        public const string version = "v. 2.6";   //version of Radar
-=======
         public const string version = "v. 2.7";   //version of Radar
->>>>>>> Wymagane
         public const uint MAX_DONGLES_RTLSDR = 3;        //Number of suportet dongles (the number can be bigger but for radar it is no really sense)
         public const uint MAX_DONGLES_RSP1 = 1;      //Is a Miri 2500 device present
         public const uint ALL_DONGLES = MAX_DONGLES_RTLSDR + MAX_DONGLES_RSP1;
@@ -81,11 +77,7 @@ namespace PasiveRadar
         public bool[] showRadioFlow;
         public int LastActiveWindowRadio = 0;                   //Last use window radio numer
         public int Nr_active_radio = 0;                         //Number of active radio recivers
-<<<<<<< HEAD
         public uint Radio_buffer_size = 5;                     //The buffer_Size * 1024 bytes. The size of buffer used by dongles RSP1. Bigger buffer better consistency of signal but more unstable during hard changes and wars responce. Smaller buffer faster responce and beter stability at changes but warse consistency of data.
-=======
-        public ushort Radio_buffer_size = 5;                     //The buffer_Size * 1024 bytes. The size of buffer used by dongles RSP1. Bigger buffer better consistency of signal but more unstable during hard changes and wars responce. Smaller buffer faster responce and beter stability at changes but warse consistency of data.
->>>>>>> Wymagane
         public bool format8_16 = false;                         //Data format 8bit/16bit. important for radar   (to divide the signal on float to high amplitude  
         public uint[] IF_freq = null;                           //RSP1  IF_freq
         public int[] Radio_gain = null;                         //RSP1  radio gain
