@@ -114,15 +114,14 @@
             // 
             // RadioBuffer_control
             // 
-            this.RadioBuffer_control.LargeChange = 2;
+            this.RadioBuffer_control.LargeChange = 1;
             this.RadioBuffer_control.Location = new System.Drawing.Point(3, 208);
             this.RadioBuffer_control.Margin = new System.Windows.Forms.Padding(4);
-            this.RadioBuffer_control.Maximum = 16;
             this.RadioBuffer_control.Minimum = 1;
             this.RadioBuffer_control.Name = "RadioBuffer_control";
             this.RadioBuffer_control.Size = new System.Drawing.Size(220, 56);
             this.RadioBuffer_control.TabIndex = 83;
-            this.RadioBuffer_control.Value = 3;
+            this.RadioBuffer_control.Value = 5;
             this.RadioBuffer_control.Scroll += new System.EventHandler(this.RadioBuffer_control_Scroll);
             // 
             // label1

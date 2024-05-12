@@ -442,11 +442,12 @@
             // 
             this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label2.AutoSize = true;
+            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.label2.ForeColor = System.Drawing.Color.Crimson;
-            this.label2.Location = new System.Drawing.Point(1303, 0);
+            this.label2.Location = new System.Drawing.Point(1298, 0);
             this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(44, 16);
+            this.label2.Size = new System.Drawing.Size(57, 20);
             this.label2.TabIndex = 95;
             this.label2.Text = "v. 1.50";
             // 
@@ -462,7 +463,7 @@
             this.button1.Size = new System.Drawing.Size(63, 52);
             this.button1.TabIndex = 27;
             this.button1.UseVisualStyleBackColor = false;
-            this.button1.Click += new System.EventHandler(this.buttonStart_Click);
+            this.button1.Click += new System.EventHandler(this.ButtonStart_Click);
             // 
             // imageList3
             // 
@@ -485,6 +486,7 @@
             this.Text = "Pasive Radar";
             this.MaximumSizeChanged += new System.EventHandler(this.Form1_MaximumSizeChanged);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
+            this.Load += new System.EventHandler(this.Form1_Load_1);
             this.Shown += new System.EventHandler(this.Form1_Shown);
             this.ResizeBegin += new System.EventHandler(this.Form1_ResizeBegin);
             this.ResizeEnd += new System.EventHandler(this.Form1_ResizeEnd);

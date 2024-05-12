@@ -268,7 +268,6 @@ namespace PasiveRadar
 
         private void CalculateRadarScene()
         {
-
             while (!calculate_radar_exit)
             {
                 if (!runing)
@@ -281,16 +280,16 @@ namespace PasiveRadar
                     for (int i = 0; i < Flags.MAX_DONGLES_RTLSDR; i++)
                         if (radioRtlSdr[i].status & radioRtlSdr[i] != null && flags.showRadar[i] == true)
                             lock (LockMainDataStream[i])
-                                Buffer.BlockCopy(radioRtlSdr[i].dataIQ, 0, dataOutRadio[i], 0, (int)flags.BufferSize * sizeof(short));
+                                Array.Copy(radioRtlSdr[i].dataIQ, 0, dataOutRadio[i], 0, radioRtlSdr[i].dataIQ.Length);
+
 
                     //SDRplay
                     for (int i = 0; i < Flags.MAX_DONGLES_RSP1; i++)
                         if (radioRSP1[i].status & radioRSP1[i] != null && flags.showRadar[i + Flags.MAX_DONGLES_RTLSDR] == true)
                             lock (LockMainDataStream[i + Flags.MAX_DONGLES_RTLSDR])
-                                Buffer.BlockCopy(radioRSP1[i].dataIQ, 0, dataOutRadio[i + Flags.MAX_DONGLES_RTLSDR], 0, (int)flags.BufferSize * sizeof(short));
+                                Array.Copy(radioRSP1[i].dataIQ, 0, dataOutRadio[i + Flags.MAX_DONGLES_RTLSDR], 0, radioRSP1[i].dataIQ.Length);
 
-                    //Calculate ambiguity map extremally slow 10x
-                    //dataOutRadio is generated here
+                    //Calculate ambiguity map 
                     if (runing)
                         try
                         {
@@ -319,7 +318,6 @@ namespace PasiveRadar
                     }
                 }
             }
-
             calculate_radar_exited = true; //Thread exit normally
         }
 
@@ -350,7 +348,7 @@ namespace PasiveRadar
                                 //copy rugh data to local arrays
                                 lock (LockMap[i])
                                 {
-                                    System.Buffer.BlockCopy(dataRadar[i], 0, dataRadar_copy[i], 0, dataRadar[i].Length * sizeof(float));
+                                    Array.Copy(dataRadar[i], 0, dataRadar_copy[i], 0, dataRadar[i].Length);
                                 }
 
                                 uint colrow = flags.Columns * flags.Rows;
@@ -362,7 +360,7 @@ namespace PasiveRadar
                                 {
                                     if (!flags.FreezeBackground)
                                         RegresionMap[i].Add(PostProcMap[i], flags.ColectEvery); //Add frames for regresion fit to find the best background correction, the second parameter describe how othen to add the element
-
+                                     
                                     RegresionMap[i].CorrectBackground(PostProcMap[i], flags.CorectionWeight);
                                 }
 
@@ -374,7 +372,7 @@ namespace PasiveRadar
                                 {
                                     mMap.pointFromRadar[i] = Finder.FindObject(PostProcMap[i], flags);
                                 }
-
+                                 
                             }
                         );
                         }
@@ -411,7 +409,8 @@ namespace PasiveRadar
                         {
                             lock (LockRadarScene[i])
                             {
-                                System.Buffer.BlockCopy(dataRadar[i], 0, dataRadar_copy[i], 0, dataRadar[i].Length * sizeof(float));
+                                Array.Copy(dataRadar[i], 0, dataRadar_copy[i], 0, dataRadar[i].Length);
+
                             }
 
                             //average
@@ -435,7 +434,6 @@ namespace PasiveRadar
                    );
                 }
             }
-
             draw_radar_exited = true; //Thread exit normally
         }
 
@@ -504,7 +502,6 @@ namespace PasiveRadar
                 window_wave[Nr].SizeChange();
                 window_flow[Nr].SizeChange();
                 UpdateAllScenes();
-
             }
             if (runing)
                 StartDraw();//Thread start
@@ -527,8 +524,6 @@ namespace PasiveRadar
                     foreach (WindowFlow x in window_flow)
                         if (x != null) x.SizeChange();
 
-                //For scenes update when is not running
-                // UpdateAllScenes();
                 DrawRadio();
             }
             if (runing)

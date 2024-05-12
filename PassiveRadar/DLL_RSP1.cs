@@ -89,7 +89,7 @@ namespace PasiveRadar
         public static extern int Sdrplay_read_sync(IntPtr dev, IntPtr buf, UInt16 len, ref UInt16 readed, ref UInt32 lost);
 
         [System.Runtime.InteropServices.DllImport(@"SDRplay.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern UInt16 Sdrplay_BufforSize(IntPtr dev, UInt32 len);
+        public static extern UInt16 Sdrplay_BufforSize(IntPtr dev);
         #endregion
 
 
@@ -343,9 +343,10 @@ namespace PasiveRadar
 
             int r = Sdrplay_read_sync(dev, pnt, len, ref n_read, ref lost);
 
+            byte[] tmp = new byte[len];
             if (bit8) //8bit data
             {
-                byte[] tmp = new byte[len];
+
                 Marshal.Copy(pnt, tmp, 0, len);
 
                 rotate_180_s8(tmp);
@@ -360,7 +361,7 @@ namespace PasiveRadar
             }
             else //16 bit data
             {
-                Marshal.Copy(pnt, buf, 0, len);
+                Marshal.Copy(pnt, buf, 0, (int)len);
                 rotate_180_s16(ref buf);
             }
 
@@ -368,13 +369,13 @@ namespace PasiveRadar
         }
 
         //function define internal buffer size 
-        public UInt16 get_BufforSize(uint len)
+        public UInt16 get_BufforSize()
         {
             if (dev != IntPtr.Zero)
-                return Sdrplay_BufforSize(dev, len);
+                return Sdrplay_BufforSize(dev);
             else
-                return 1024 * 16;
-        }
+                return 1024 * 5;
+        }   
         public int adc_init()
         {
             if (dev == IntPtr.Zero) return -1;
@@ -417,6 +418,7 @@ namespace PasiveRadar
         {
             if (dev == IntPtr.Zero) return -1;
             return Sdrplay_streaming_stop(dev);
+            
         }
         public int set_center_freq(uint freq)
         {

@@ -1,7 +1,5 @@
-﻿
-
-
-using System;
+﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows;
 
@@ -49,19 +47,17 @@ namespace PasiveRadar
         public int Number_of_gains = 102;
 
         DLL_RSP1 dll;
-        DLL_RSP1 dllplay; //SDR1 radio controll
 
-
-        //public Int16[] data_dongle = null;
         public Int16[] dataIQ = null;
         uint RadioInternalBufferSize = 16 * 1024;// 16K IS RECOMENDET
 
         Thread thread = null;
         private readonly Object _Lock = new Object();
         volatile bool exit = false;
-        public volatile bool exited = false; //Flag is tru when the thread is exited
+        public volatile bool exited = true; //Flag is true when the thread is exited
 
         public AutoResetEvent autoVisualEvent;
+        //int gap = 0;
 
         public RadioRSP1()
         {
@@ -72,38 +68,50 @@ namespace PasiveRadar
         public void InitBuffers(Flags flags)
         {
             Stop();
+            //gap = (int)flags.Radio_buffer_size * 2;
             BufferSize = (int)flags.BufferSize;
-            RadioInternalBufferSize = flags.Radio_buffer_size * 1024;
+            RadioInternalBufferSize = (uint)Math.Pow(2, 5) * 1024;//flags.Radio_buffer_size
             dataIQ = new Int16[(int)flags.BufferSize];
         }
 
         public void Start()
         {
             exit = false;
-            exited = false;
 
-            if (thread == null)
+
+            if (thread == null && exited == true)
             {
+                exited = false;
                 thread = new Thread(new ThreadStart(Read));
-                thread.Priority = System.Threading.ThreadPriority.Lowest;
+                thread.Priority = System.Threading.ThreadPriority.AboveNormal;
                 thread.Start();
             }
         }
 
         //SDRplay
-
+      //  [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
         public void Stop()
         {
+
+            exit = true;
+            // Thread.Sleep(300);//Like that works without hanging
             if (thread != null)
             {
-                exit = true;
-
-                while (!exited) ;
+                thread.Join(2000);
                 thread = null;
-                //Array.Clear(dataIQ, 0, BufferSize);
             }
+
+            //if (thread != null)
+            //{
+
+            //    while (!exited) ;
+            //    thread = null;
+            //    //Array.Clear(dataIQ, 0, BufferSize);
+            //}
+
         }
 
+        //For async mode
         public int ResetBuffer()
         {
             return dll.reset_buffer();
@@ -118,22 +126,29 @@ namespace PasiveRadar
 
                 Set_tuner_gain_mode(gain_mode);
 
-                band = GetBand();
+                // band = GetBand();
 
-                //Set_tuner_gain();
                 r = SetCentralFreq();
-                r = dll.reset_buffer();
-
+                if (r < 0) return r;
                 r = dll.set_transfer(tt);
+                if (r < 0) return r;
                 r = dll.set_sample_format(format);
+                if (r < 0) return r;
                 r = dll.set_hw_flavour(DLL_RSP1.mirisdr_hw_flavour_t.MIRISDR_HW_DEFAULT);
+                if (r < 0) return r;
                 r = dll.set_sample_rate(rate);
+                if (r < 0) return r;
                 r = dll.set_bandwidth(bandwith);
-                IF_frequency = dll.get_if_freq();
+                if (r < 0) return r;
+                r = dll.set_if_freq(IF_frequency);
+                if (r < 0) return r;
+
                 ctx_frequency = dll.get_xtal_freq();
-                r = dll.cancel_async();
+                // r = dll.cancel_async();
+
 
                 r = dll.set_tuner_gain(gain);
+                if (r < 0) return r;
                 gainLNA = dll.get_lna_gain();
                 gainMixer = dll.get_mixer_gain();
                 gainBaseBand = dll.get_baseband_gain();
@@ -318,17 +333,23 @@ namespace PasiveRadar
             UInt16 readed = 0;
             int count = 0;
             Int16[] temp_buffer = new Int16[BufferSize];
+            //Int16[] temp_buffer = new Int16[BufferSize + gap];
+            // Int16[] buf_zero = new Int16[gap];
+
+            //Array.Clear(buf_zero, 0, buf_zero.Length);
 
             //8/16bit format
             if (format == DLL_RSP1.format_t.MIRISDR_FORMAT_504_S8)
             {
                 bit8 = true;
-                Radio_buffer_size = dll.get_BufforSize(RadioInternalBufferSize);
+                Radio_buffer_size = dll.get_BufforSize();
             }
             else
             {
                 bit8 = false;
-                Radio_buffer_size = (UInt16)(dll.get_BufforSize(RadioInternalBufferSize) / 2);
+
+                int temp = dll.get_BufforSize() / 2;
+                Radio_buffer_size = (ushort)temp;
             }
             dll.InitBuffer(Radio_buffer_size * 2);
             Int16[] data_dongle = new Int16[Radio_buffer_size];
@@ -338,6 +359,11 @@ namespace PasiveRadar
             lost = 0;
 
             r = dll.streaming_start();
+            if (r < 0)
+            {
+                return;
+            }
+
             while (!exit)
             {
                 try
@@ -347,7 +373,7 @@ namespace PasiveRadar
                 }
                 catch (Exception ex)
                 {
-                    String str = "Error open device. " + ex.ToString();
+                    String str = "Error open device. " + ex.ToString() + "Error " + r;
                     MessageBox.Show(str);
                     r = dll.streaming_stop();
                     exited = true;
@@ -358,28 +384,37 @@ namespace PasiveRadar
                 //first fill t he temp buffer
                 if (count < buffer_multiplication)
                 {
-                    Buffer.BlockCopy(data_dongle, 0, temp_buffer, Radio_buffer_size * count, Radio_buffer_size * sizeof(short));
+                    Array.Copy(data_dongle, 0, temp_buffer, data_dongle.Length * count, data_dongle.Length);
                     count++;
                 }
 
-                //Make a place for new data
-                Buffer.BlockCopy(temp_buffer, Radio_buffer_size, temp_buffer, 0, reduced_buffer_size * sizeof(short));
+                //////Make a place for new data
+                Array.Copy(temp_buffer, data_dongle.Length, temp_buffer, 0, reduced_buffer_size);
 
-                //Add to the end of temp_buffer a new data (fast)
-                Buffer.BlockCopy(data_dongle, 0, temp_buffer, reduced_buffer_size, Radio_buffer_size * sizeof(short));
+                ////Add to the end of temp_buffer a new data (fast)
+                Array.Copy(data_dongle, 0, temp_buffer, reduced_buffer_size, data_dongle.Length);
+
+
+                //Array.Copy(temp_buffer, data_dongle.Length + gap, temp_buffer, 0, reduced_buffer_size - gap);//make a place for new data
+                //Array.Copy(data_dongle, 0, temp_buffer, reduced_buffer_size, data_dongle.Length);// add new data dongle
+                //Array.Copy(buf_zero, 0, temp_buffer, reduced_buffer_size - gap, gap); //    set gap with 0
+
+
                 //Protct reading data
                 lock (_Lock)
                 {
                     //copy temp to dataIQ must be protected, acces by other threads
-                    Buffer.BlockCopy(temp_buffer, 0, dataIQ, 0, BufferSize * sizeof(short));
+                    Array.Copy(temp_buffer, 0, dataIQ, 0, dataIQ.Length);
                 }
             }
+
             r = dll.streaming_stop();
             if (r < 0)
             {
-                String str = "Error open device. " + r;
+                String str = "Error streaming stop. " + r;
                 MessageBox.Show(str);
             }
+
             exited = true;
         }
 

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace PasiveRadar
 {
@@ -49,7 +50,7 @@ namespace PasiveRadar
             if (AddEveryIndex == AddEvery)
             {
                 if (Column * Rows * (NrElements + 1) == StorageArray.Length)
-                    System.Buffer.BlockCopy(InpArray, 0, StorageArray, InpArray.Length * (int)Index * sizeof(float), (int)(sizeof(float) * InpArray.Length));
+                    Array.Copy(InpArray, 0, StorageArray, InpArray.Length * (int)Index, (int)(InpArray.Length));
                 AddEveryIndex = 0;
 
                 //Change the index of added elements

@@ -34,6 +34,7 @@
             this.splitContainer = new System.Windows.Forms.SplitContainer();
             this.panelRadioFlow = new System.Windows.Forms.Panel();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.tuningNumber = new PasiveRadar.TuningNumber();
             this.button1 = new System.Windows.Forms.Button();
             this.imageList1 = new System.Windows.Forms.ImageList(this.components);
             this.button2 = new System.Windows.Forms.Button();
@@ -55,7 +56,6 @@
             this.trackBar1 = new System.Windows.Forms.TrackBar();
             this.checkBox2 = new System.Windows.Forms.CheckBox();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
-            this.tuningNumber = new PasiveRadar.TuningNumber();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
             this.splitContainer.Panel1.SuspendLayout();
             this.splitContainer.Panel2.SuspendLayout();
@@ -120,6 +120,13 @@
             this.panel1.Controls.Add(this.label_Radio);
             resources.ApplyResources(this.panel1, "panel1");
             this.panel1.Name = "panel1";
+            // 
+            // tuningNumber
+            // 
+            this.tuningNumber.BackColor = System.Drawing.SystemColors.Control;
+            this.tuningNumber.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
+            resources.ApplyResources(this.tuningNumber, "tuningNumber");
+            this.tuningNumber.Name = "tuningNumber";
             // 
             // button1
             // 
@@ -300,13 +307,6 @@
             this.checkBox1.UseVisualStyleBackColor = true;
             this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
-            // tuningNumber
-            // 
-            this.tuningNumber.BackColor = System.Drawing.SystemColors.Control;
-            this.tuningNumber.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
-            resources.ApplyResources(this.tuningNumber, "tuningNumber");
-            this.tuningNumber.Name = "tuningNumber";
-            // 
             // WindowsRadio
             // 
             resources.ApplyResources(this, "$this");
@@ -336,7 +336,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
             this.splitContainer2.ResumeLayout(false);
             this.flowLayoutPanel1.ResumeLayout(false);
-            this.flowLayoutPanel1.PerformLayout();
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar3)).EndInit();
@@ -357,7 +356,6 @@
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.SplitContainer splitContainer2;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
-        private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TrackBar trackBar3;
         private System.Windows.Forms.TrackBar trackBar2;
@@ -374,5 +372,6 @@
         private System.Windows.Forms.ComboBox comboBox1;
         private System.Windows.Forms.Label label7;
         public TuningNumber tuningNumber;
+        internal System.Windows.Forms.Panel panel2;
     }
 }

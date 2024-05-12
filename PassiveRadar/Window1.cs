@@ -56,6 +56,7 @@ namespace PasiveRadar
             mDrawRadar.ColorThemeNr = flags.ColorTheme;
             mDrawRadar.DrawPrepare(panelViewport, flags);
             mDrawRadar.DeviceName = flags.DeviceName;
+            mDrawRadar.dongle_nr = dongle_nr;
         }
 
         public void Location(float x)

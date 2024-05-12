@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -59,8 +58,9 @@ namespace PasiveRadar
 
             trackBar3.Value = LocalFlags.refresh_delay;
             label6.Text = "" + trackBar3.Value + " ms";
-
+            if (LocalFlags.Radio_buffer_size > RadioBuffer_control.Maximum) LocalFlags.Radio_buffer_size = (uint)RadioBuffer_control.Maximum;
             RadioBuffer_control.Value = (int)LocalFlags.Radio_buffer_size;
+
             label2.Text = "" + LocalFlags.Radio_buffer_size;
 
             if (CustomColorsAccepted == false)

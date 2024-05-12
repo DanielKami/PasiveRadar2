@@ -23,7 +23,7 @@ namespace PasiveRadar
         public int dongle_type;
 
         // Size of dongle buffer, it is smaller than buffer. Data are cumulated to generate full buffer. 
-        int Radio_buffer_size = 1024 * 11;
+        ushort Radio_buffer_size = 1024 * 11;
 
         //Gains of amlplifier
         public int[] tuner_gain_list;
@@ -62,7 +62,8 @@ namespace PasiveRadar
         {
             Stop();
             BufferSize = (int)flags.BufferSize;
-            Radio_buffer_size = (int)flags.Radio_buffer_size * 1024;
+            
+            Radio_buffer_size = (ushort)(Math.Pow(2, 5) * 1024); //flags.Radio_buffer_size max is 6 ushort Od 0 do 65 535
             dll.InitBuffer((int)flags.BufferSize);
             dataIQ = new Int16[(int)flags.BufferSize];
             data_dongle = new short[Radio_buffer_size];
@@ -79,7 +80,7 @@ namespace PasiveRadar
             if (thread == null)
             {
                 thread = new Thread(new ThreadStart(Read));
-                thread.Priority = System.Threading.ThreadPriority.Lowest;
+                thread.Priority = System.Threading.ThreadPriority.Normal;
                 thread.Start();
             }
         }
@@ -362,7 +363,7 @@ namespace PasiveRadar
             int count = 0;
             int buffer_multiplication = BufferSize / Radio_buffer_size - 1;//-1 because copy offset and the radio buffer must be smaller than BufferSize
             short[] temp_buffer = new short[BufferSize];
-            int reduced_buffer_size = BufferSize - Radio_buffer_size;
+            int reduced_buffer_size = BufferSize - data_dongle.Length;
 
             while (!exit)
             {
@@ -383,21 +384,21 @@ namespace PasiveRadar
                 //first fill the temp buffer
                 if (count < buffer_multiplication)
                 {
-                    Buffer.BlockCopy(data_dongle, 0, temp_buffer, Radio_buffer_size * count, Radio_buffer_size * sizeof(short));
+                    Array.Copy(data_dongle, 0, temp_buffer, data_dongle.Length * count, data_dongle.Length);
                     count++;
                 }
 
                 //Make a place for new data
-                Buffer.BlockCopy(temp_buffer, Radio_buffer_size, temp_buffer, 0, reduced_buffer_size * sizeof(short));
-
-                //Add to the end of temp_buffer a new data (fast)
-                Buffer.BlockCopy(data_dongle, 0, temp_buffer, reduced_buffer_size, Radio_buffer_size * sizeof(short)); //??    Array src,    int srcOffset,    Array dst,    int dstOffset,    int count
+                Array.Copy(temp_buffer, data_dongle.Length, temp_buffer, 0, reduced_buffer_size);
+                 //Add to the end of temp_buffer a new data (fast)
+                Array.Copy(data_dongle, 0, temp_buffer, reduced_buffer_size, data_dongle.Length  ); //??    Array src,    int srcOffset,    Array dst,    int dstOffset,    int count
 
                 //Protct reading data
                 lock (_Lock)
                 {
                     //copy temp to dataIQ must be protected, acces by other threads
-                    Buffer.BlockCopy(temp_buffer, 0, dataIQ, 0, BufferSize * sizeof(short));
+                    Array.Copy(temp_buffer, 0, dataIQ, 0, dataIQ.Length );
+
                 }
             }
             exited = true;

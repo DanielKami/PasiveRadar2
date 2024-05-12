@@ -693,7 +693,7 @@ namespace PasiveRadar
             //convert to int
             for (int i = 0; i < lenght; i++)
             {
-                data[i] = tmp[i];
+                data[i] = (short)tmp[i];
                 data[i] -= 127;
                 data[i] <<= 4;  //increase signal
             }

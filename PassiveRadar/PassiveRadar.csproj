@@ -162,7 +162,6 @@
       <DependentUpon>ColorForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Complex.cs" />
-    <Compile Include="Coniugate.cs" />
     <Compile Include="CorrelateControl.cs">
       <SubType>UserControl</SubType>
     </Compile>

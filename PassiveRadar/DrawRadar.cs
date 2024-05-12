@@ -16,6 +16,7 @@ namespace PasiveRadar
         public float rate;
         public uint BufferSize;
         public string DeviceName;
+        public int dongle_nr;
 
         public GraphicsDeviceService service;
         protected SpriteBatch spriteBatch = null;
@@ -48,15 +49,6 @@ namespace PasiveRadar
         private float scaleYfactor;
         private uint ColReducedRoes = 1;
         private int ReducedRows;
-        //struct MapPoints
-        //{
-        //    public int i;//index columns
-        //    public int j;//index rows (reduced)
-        //    public uint size;
-        //};
-
-        //      List<MapPoints> ListMap = new List<MapPoints>();
-
 
 
         private readonly float c = 299792458f; //Speed of light m/s
@@ -67,7 +59,7 @@ namespace PasiveRadar
         //int Width_RightMargin;
         float DistanceShift;
         int ColorTableSize_;
-        private int latency = 10;
+
 
         public void SizeChanged(Panel panelViewport, GraphicsDevice graphicsDevice, GraphicsDeviceService _service, SpriteBatch _spriteBatch, SpriteFont _spriteFont, BasicEffect _mSimpleEffect, Texture2D _texture)
         {
@@ -93,8 +85,8 @@ namespace PasiveRadar
                     DistanceShift = flags.DistanceShift;
                     BufferSize = flags.BufferSize;
                     CreateColorTable1(ColorThemeNr, flags.ColorThemeTable, flags);
-                    frequency = flags.frequency[0];
-                    sample_rate = flags.rate[0];
+                    frequency = flags.frequency[dongle_nr];
+                    sample_rate = flags.rate[dongle_nr];
                 }
 
                 x_left = LeftMargin + 15;
@@ -114,7 +106,7 @@ namespace PasiveRadar
 
                 // This is the Doppler shift change between ticks according to Max Manning dopplerfish.com
                 r_b_c = (float)(sample_rate * Columns / ActivePlotAreaX / (doppler_zoom) * c / frequency / 100f); // TODO: / doppler_zoom; is in m/s
-                r_b_c *= 3600 / 1000;
+    
                 ColRow = Columns * Rows;
 
                 p = new Vector2[ColRow];

@@ -1,12 +1,11 @@
 ﻿//#define INTFLAG
 using System;
 using System.Runtime.InteropServices;
-using System.Threading;
 using System.Windows;
 
 namespace PasiveRadar
 {
-    class Ambiguity : Coniugate
+    class Ambiguity
     {
 
         [System.Runtime.InteropServices.DllImport(@"Ambiguity.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -19,7 +18,7 @@ namespace PasiveRadar
         public static extern int Release();
 
         private readonly Object LockMem = new Object();
-        private Thread ThreadGPU;
+        // private Thread ThreadGPU;
 
         public void Prepare(Flags flags)
         {
@@ -61,7 +60,7 @@ namespace PasiveRadar
 
             lock (LockMem)
             {
-                System.Buffer.BlockCopy(dataRadar, 0, Out, 0, Out.Length * sizeof(float));
+                Array.Copy(dataRadar, 0, Out, 0, Out.Length);
             }
         }
 

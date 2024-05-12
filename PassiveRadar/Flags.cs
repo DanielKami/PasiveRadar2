@@ -8,7 +8,7 @@ namespace PasiveRadar
 {
     public class Flags
     {
-        public const string version = "v. 2.2";   //version of Radar
+        public const string version = "v. 2.6";   //version of Radar
         public const uint MAX_DONGLES_RTLSDR = 3;        //Number of suportet dongles (the number can be bigger but for radar it is no really sense)
         public const uint MAX_DONGLES_RSP1 = 1;      //Is a Miri 2500 device present
         public const uint ALL_DONGLES = MAX_DONGLES_RTLSDR + MAX_DONGLES_RSP1;
@@ -28,7 +28,9 @@ namespace PasiveRadar
             FilterCentralFreq = new float[ALL_DONGLES];
             BufferSizeRadio = new uint[ALL_DONGLES];
             showRadar = new bool[ALL_DONGLES];
-
+            IF_freq = new uint[ALL_DONGLES];
+            Radio_gain = new int[ALL_DONGLES];
+            Radio_compresion_format = new int[ALL_DONGLES];
             //Flags general
             for (int i = 0; i < ALL_DONGLES; i++)
             {
@@ -42,7 +44,10 @@ namespace PasiveRadar
                 showRadioFlow[i] = true;
                 FilterCentralFreq[i] = 0;
                 BufferSizeRadio[i] = 512;
+                IF_freq[i] = 0;
+                Radio_gain[i] = 10;
             }
+
 
             ColorThemeTable = new Microsoft.Xna.Framework.Color[ColorTableSize];
 
@@ -65,24 +70,25 @@ namespace PasiveRadar
         public float[] rate;                                    //Bit rate of the IF from reciver
         public uint[] bandwitch;
         public double[] frequency;                              //Frequency of  dongle
-        public int[] Amplification;                             //Amplification of data in view from radio i
+        public int[] Amplification;                             //Amplification of data in view window from radio i
         public uint[] Cumulation = new uint[ALL_DONGLES];       //Number of cumulations wave and flow radio window
         public int[] Level = new int[ALL_DONGLES];              //Level of background in flow window
         public bool[] showRadioWave;
         public bool[] showRadioFlow;
         public int LastActiveWindowRadio = 0;                   //Last use window radio numer
         public int Nr_active_radio = 0;                         //Number of active radio recivers
-        public uint Radio_buffer_size = 5;                       //The small buffer size to read dongle data is in form 2^buffer_Size * 1024
+        public uint Radio_buffer_size = 5;                     //The buffer_Size * 1024 bytes. The size of buffer used by dongles RSP1. Bigger buffer better consistency of signal but more unstable during hard changes and wars responce. Smaller buffer faster responce and beter stability at changes but warse consistency of data.
         public bool format8_16 = false;                         //Data format 8bit/16bit. important for radar   (to divide the signal on float to high amplitude  
-
-
+        public uint[] IF_freq = null;                           //RSP1  IF_freq
+        public int[] Radio_gain = null;                         //RSP1  radio gain
+        public int[] Radio_compresion_format = null;            //Compresion format of data for RSP1
         //Flags related to radar
         public uint[] BufferSizeRadio;                          //Buffer for FFT   of radio
         public uint BufferSize = 1024 * 256;                    //Buffer for FFT   of radar                            
         public bool remove_symetrics = false;                   //Flag indicate if the symetric signals in radar has to be removed
         public int average = 5;                                 //Average Radar frames over specified number
         public short scale_type = 0;                            //sygnal scale in radar 0-lin, 1-sqrt, 2-log
-        public uint MaxAverage = 40;                            //Maximum frame average for radar
+        public uint MaxAverage = 60;                            //Maximum frame average for radar
         public uint DopplerZoom = 500;                          //Distance zoom in pasive radar
         public float PasiveGain = 5;                            //Gain of the ambiguity function
         public uint Columns = 100;                              //Screen columns
@@ -218,8 +224,15 @@ namespace PasiveRadar
             //yourText += "rate1 " + rate1.ToString(CultureInfo.InvariantCulture) + "\n";
             for (int ix = 0; ix < ALL_DONGLES; ix++)
                 yourText += "frequency" + ix + " " + frequency[ix].ToString(CultureInfo.InvariantCulture) + "\n";
-            //yourText += "frequency1 " + frequency1.ToString(CultureInfo.InvariantCulture) + "\n";
 
+            //RSP settings
+            for (int ix = 0; ix < ALL_DONGLES; ix++)
+                yourText += "IF_freq" + ix + " " + IF_freq[ix].ToString(CultureInfo.InvariantCulture) + "\n";
+            for (int ix = 0; ix < ALL_DONGLES; ix++)
+                yourText += "Radio_gain" + ix + " " + Radio_gain[ix].ToString(CultureInfo.InvariantCulture) + "\n";
+            for (int ix = 0; ix < ALL_DONGLES; ix++)
+                yourText += "Radio_compresion_format" + ix + " " + Radio_compresion_format[ix].ToString(CultureInfo.InvariantCulture) + "\n";
+            
             yourText += "ColorTheme " + ColorTheme + "\n";
             yourText += "LastActiveWindowRadio " + LastActiveWindowRadio + "\n";
 
@@ -357,8 +370,11 @@ namespace PasiveRadar
                 else if (parameter == "FilterCentralFreq" + ix) float.TryParse(value, out FilterCentralFreq[ix]);//Flags related IQ strem and filters 
                 else if (parameter == "BufferSizeRadio" + ix) UInt32.TryParse(value, out BufferSizeRadio[ix]);
                 else if (parameter == "bandwitch" + ix) UInt32.TryParse(value, out bandwitch[ix]);
+                else if (parameter == ("IF_freq" + ix)) UInt32.TryParse(value, out IF_freq[ix]);
+                else if (parameter == ("Radio_gain" + ix)) Int32.TryParse(value, out Radio_gain[ix]);
+                else if (parameter == ("Radio_compresion_format" + ix)) Int32.TryParse(value, out Radio_compresion_format[ix]);
             }
-
+ 
 
             if (parameter == "ColorTheme") Int32.TryParse(value, out ColorTheme);
             else if (parameter == "LastActiveWindowRadio") Int32.TryParse(value, out LastActiveWindowRadio);

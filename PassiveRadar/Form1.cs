@@ -85,15 +85,12 @@ namespace PasiveRadar
                 radioRSP1[i] = new RadioRSP1();
 
 
-
-
-
             #region Windows
             windowRadar = new Window[Flags.ALL_DONGLES];
             windowRadar[0] = new Window(panelViewport1, 0);
-            windowRadar[1] = new Window(panelViewport2, 0);
-            windowRadar[2] = new Window(panelViewport3, 0);
-            windowRadar[3] = new Window(panelViewport4, 0);
+            windowRadar[1] = new Window(panelViewport2, 1);
+            windowRadar[2] = new Window(panelViewport3, 2);
+            windowRadar[3] = new Window(panelViewport4, 3);
 
             window_wave = new WindowWave[Flags.ALL_DONGLES];
             window_flow = new WindowFlow[Flags.ALL_DONGLES];
@@ -125,7 +122,7 @@ namespace PasiveRadar
             }
             #endregion
 
-            DrawRadio();
+            //DrawRadio();
 
             radar_cumulate = new RadarCumulate[Flags.ALL_DONGLES];
             Regresion = new ClassRegresion[Flags.ALL_DONGLES];
@@ -171,7 +168,8 @@ namespace PasiveRadar
                 {
                     radioRSP1[i].rate = (uint)flags.rate[i + Flags.MAX_DONGLES_RTLSDR];
                     radioRSP1[i].bandwith = (uint)flags.bandwitch[i + Flags.MAX_DONGLES_RTLSDR];
-                    setSDRplays[i].SetSettings(radioRSP1[i]);
+                    radioRSP1[i].IF_frequency = (uint)flags.IF_freq[i + Flags.MAX_DONGLES_RTLSDR];
+                    setSDRplays[i].SetSettings(radioRSP1[i]); 
                 }
             }
 
@@ -222,9 +220,10 @@ namespace PasiveRadar
 
             //Update all user controls
             UpdateFrequencies(flags.LastActiveWindowRadio);
-            if (FlagsDelegate != null)
-                FlagsDelegate(flags);
+            FlagsDelegate?.Invoke(flags);
 
+            Console.Beep(2000, 500);
+            Console.Beep(4000, 250);
             InitSiteMenu();
         }
 
@@ -276,7 +275,7 @@ namespace PasiveRadar
                 windowRadar[i].Update(flags);
 
             foreach (WindowFlow x in window_flow)
-                if (x != null) x.Update(flags);
+                x?.Update(flags);
         }
 
         //Find AMD driver, if yes we have OpenCL support 
@@ -363,18 +362,12 @@ namespace PasiveRadar
             {
                 for (int i = 0; i < Flags.MAX_DONGLES_RTLSDR; i++)
                 {
-                    if (radioRtlSdr[i] != null)
-                    {
-                        radioRtlSdr[i].InitBuffers(flags);
-                    }
+                    radioRtlSdr[i]?.InitBuffers(flags);
                 }
 
                 for (int i = 0; i < Flags.MAX_DONGLES_RSP1; i++)
                 {
-                    if (radioRSP1[i] != null)
-                    {
-                        radioRSP1[i].InitBuffers(flags);
-                    }
+                    radioRSP1[i]?.InitBuffers(flags);
                 }
 
                 dataRadio = new double[Flags.ALL_DONGLES][];
@@ -393,18 +386,14 @@ namespace PasiveRadar
                     map_cumulate[i].Init(flags);
                 }
 
-                if (mMap != null)
-                    mMap.CopyFlags(flags);
-                //uint BufferNegPos = flags.BufferSize + (flags.Negative + flags.Positive) * 2;
-                uint BufferNegPos = flags.BufferSize;
+                mMap?.CopyFlags(flags);
 
+                dataOutRadio = new short[Flags.ALL_DONGLES][];//
+                for (int i = 0; i < Flags.ALL_DONGLES; i++)
+                    dataOutRadio[i] = new short[flags.BufferSize];
 
-                dataOutRadio = new short[Flags.MAX_DONGLES_RSP1 + Flags.MAX_DONGLES_RTLSDR][];//
-                for (int i = 0; i < Flags.MAX_DONGLES_RSP1 + Flags.MAX_DONGLES_RTLSDR; i++)
-                    dataOutRadio[i] = new short[BufferNegPos];
-
-                PostProc = new float[Flags.MAX_DONGLES_RSP1 + Flags.MAX_DONGLES_RTLSDR][];
-                for (int i = 0; i < Flags.MAX_DONGLES_RSP1 + Flags.MAX_DONGLES_RTLSDR; i++)
+                PostProc = new float[Flags.ALL_DONGLES][];
+                for (int i = 0; i < Flags.ALL_DONGLES; i++)
                     PostProc[i] = new float[flags.Columns * flags.Rows];
 
                 if (ambiguity != null)
@@ -413,27 +402,20 @@ namespace PasiveRadar
                     ambiguity.Prepare(flags);
                 }
 
-                for (int i = 0; i < Flags.MAX_DONGLES_RSP1 + Flags.MAX_DONGLES_RTLSDR; i++)
+                for (int i = 0; i < Flags.ALL_DONGLES; i++)
                 {
-                    if (Regresion[i] != null)
-                        Regresion[i].Initiate(flags);
-                    if (RegresionMap[i] != null)
-                        RegresionMap[i].Initiate(flags);
+                    Regresion[i]?.Initiate(flags);
+                    RegresionMap[i]?.Initiate(flags);
                 }
             }
         }
 
-        private void Resynchronise()
-        {
-            flags.Resynchronisation = true;
-            StopAllRadios();
-            // System.Threading.Thread.Sleep(10);
-            StartAllRadios();
-        }
 
-        private void buttonStart_Click(object sender, EventArgs e)
+        private void ButtonStart_Click(object sender, EventArgs e)
         {
             if (findRtlSdr.NrOfDevices == 0) return;
+
+            Thread.Sleep(100);
             if (runing == false)
             {
 
@@ -453,10 +435,12 @@ namespace PasiveRadar
             {
                 if (findRtlSdr.NrOfDevices == 0) return;
                 // radarControl1.ActiveDeactivateColumnsControll(true);
+                button1.Enabled = false;
                 StopAllThreads();
                 StopAllRadios();
                 button1.ImageIndex = 0;
                 runing = false;
+                button1.Enabled = true;
             }
         }
 
@@ -497,8 +481,8 @@ namespace PasiveRadar
                 {
                     if (radioRSP1[i] != null & radioRSP1[i].status)
                     {
-                        if (radioRSP1[i].exited == false)
-                            radioRSP1[i].Stop();
+                        //if (radioRSP1[i].exited == false)
+                        //    radioRSP1[i].Stop();
                         radioRSP1[i].Start();
                     }
                 }
@@ -712,7 +696,7 @@ namespace PasiveRadar
         }
         #endregion
 
-        private void panelViewport_MouseLeave(object sender, EventArgs e)
+        private void PanelViewport_MouseLeave(object sender, EventArgs e)
         {
             for (int i = 0; i < Flags.ALL_DONGLES; i++)
                 windowRadar[i].Location(-1);
@@ -815,7 +799,7 @@ namespace PasiveRadar
         /// <param name="LocalFlags"></param>
         private void RadarSettings(Flags LocalFlags)
         {
-            // lock (LockMem)
+            //lock (LockMem)
             {
                 flags.PasiveGain = LocalFlags.PasiveGain;
                 flags.remove_symetrics = LocalFlags.remove_symetrics;
@@ -841,8 +825,7 @@ namespace PasiveRadar
                     {
                         StopDraw();
                         for (int i = 0; i < Flags.MAX_DONGLES_RTLSDR; i++)
-                            if (radioRtlSdr[i] != null)
-                                radioRtlSdr[i].Stop();
+                            radioRtlSdr[i]?.Stop();
 
                         for (int i = 0; i < Flags.MAX_DONGLES_RSP1; i++)
                             if (radioRSP1[i] != null)
@@ -903,8 +886,7 @@ namespace PasiveRadar
                 label3.Text = "Select reciver! ";
 
             flags.Nr_active_radio = count;//must  be before update all windows
-            if (FlagsDelegate != null)
-                FlagsDelegate(flags);
+            FlagsDelegate?.Invoke(flags);
 
             return count;
         }
@@ -970,6 +952,7 @@ namespace PasiveRadar
                         radioRSP1[WindowRadio].BufferSize = (int)flags.BufferSize;
                         radioRSP1[WindowRadio].frequency = (int)flags.frequency[WindowRadio];
                         radioRSP1[WindowRadio].rate = (uint)flags.rate[WindowRadio];
+                        radioRSP1[WindowRadio].IF_frequency = (uint)flags.IF_freq[WindowRadio];
                         radioRSP1[WindowRadio].Open();
 
                         if (radioRSP1[WindowRadio].status)
@@ -1057,8 +1040,8 @@ namespace PasiveRadar
                 StopAllThreads();
                 if (radioRSP1[WindowRadio] != null)
                 {
-                    radioRSP1[WindowRadio].Stop();
-                    radioRSP1[WindowRadio].Close();
+                   // radioRSP1[WindowRadio].Stop();
+                   // radioRSP1[WindowRadio].Close();
                     //First check if other Radio posses the dongle (item) and free it
                     for (int i = 0; i < Flags.MAX_DONGLES_RSP1; i++)
 
@@ -1070,9 +1053,10 @@ namespace PasiveRadar
                             // radioSDRplays[i].itm = 0;
                             radioRSP1[i].item = 0;
                             radio_window[i].label_Radio.Text = "None";
+
                         }
 
-                    findRtlSdr.StatusList[radioRSP1[WindowRadio].item] = 0;//free the previously used dongle
+                    findRSP1.StatusList[radioRSP1[WindowRadio].item] = 0;//free the previously used dongle
                     radioRSP1[WindowRadio].item = Reciver;// change entry in radio to the currrent
                     radioRSP1[WindowRadio].dev_number = findRSP1.List[Reciver];
                 }
@@ -1082,6 +1066,11 @@ namespace PasiveRadar
                 {
                     if (radioRtlSdr[WindowRadio] != null)
                     {
+
+
+                        radioRSP1[WindowRadio].format = RadioRSP1.Sample_format(flags.Radio_compresion_format[WindowRadio + Flags.MAX_DONGLES_RTLSDR]);
+                        radioRSP1[WindowRadio].gain = flags.Radio_gain[WindowRadio + Flags.MAX_DONGLES_RTLSDR];
+                        radioRSP1[WindowRadio].IF_frequency = flags.IF_freq[WindowRadio + Flags.MAX_DONGLES_RTLSDR];
                         radioRSP1[WindowRadio].BufferSize = (int)flags.BufferSize;
                         radioRSP1[WindowRadio].frequency = (int)flags.frequency[WindowRadio + Flags.MAX_DONGLES_RTLSDR];
                         radioRSP1[WindowRadio].rate = (uint)flags.rate[WindowRadio + Flags.MAX_DONGLES_RTLSDR];
@@ -1175,6 +1164,7 @@ namespace PasiveRadar
                         radioRSP1[Nr].GetLNAGain();
                         radioRSP1[Nr].GetMixerGain();
                         radioRSP1[Nr].GetBasebandGain();
+                        flags.Radio_gain[Nr + Flags.MAX_DONGLES_RTLSDR] = gain;
                     }
                     else if (radioRSP1[Nr].gainLNA != gain_LNA)
                     {
@@ -1196,11 +1186,15 @@ namespace PasiveRadar
                 radioRSP1[Nr].SetCentralFreq();
                 radioRSP1[Nr].SetFreqCorrection(shift);
                 if (radioRSP1[Nr].IF_frequency != IF_frequency)
+                {
                     radioRSP1[Nr].Set_if_frequency(IF_frequency);
+                    flags.IF_freq[Nr + Flags.MAX_DONGLES_RTLSDR] = IF_frequency;
+                }
 
 
                 //Memory sensitive functions/parameters
                 if (runing)
+                {
                     if (radioRSP1[Nr].format != RadioRSP1.Sample_format(format) ||
                         radioRSP1[Nr].bandwith != bandwith ||
                         radioRSP1[Nr].rate != rate ||
@@ -1210,15 +1204,18 @@ namespace PasiveRadar
                     {
                         radioRSP1[Nr].Stop();
 
-                        Thread.Sleep(10);
-                        radioRSP1[Nr].ResetBuffer();
+                        //Thread.Sleep(10);
+                       // radioRSP1[Nr].ResetBuffer();
 
                         if (radioRSP1[Nr].gain_mode != AGC)
                             radioRSP1[Nr].Set_tuner_gain_mode(AGC);//Automatic manual gain mode
 
 
                         if (radioRSP1[Nr].format != RadioRSP1.Sample_format(format))
+                        {
                             radioRSP1[Nr].Set_sample_format(format);
+                            flags.Radio_compresion_format[Nr + Flags.MAX_DONGLES_RTLSDR] = format;
+                        }
 
                         if (radioRSP1[Nr].bandwith != bandwith)
                         {
@@ -1238,17 +1235,19 @@ namespace PasiveRadar
                         Thread.Sleep(10);
                         radioRSP1[Nr].Start();
                     }
-                    else
-                    {
-                        radioRSP1[Nr].Set_bandwidth(bandwith);
-                        radioRSP1[Nr].Set_sample_format(format);
-                        radioRSP1[Nr].SetSampleRate(rate);
-                        flags.rate[Nr + Flags.MAX_DONGLES_RTLSDR] = rate;
-                        flags.bandwitch[Nr + Flags.MAX_DONGLES_RTLSDR] = bandwith;
-                        radioRSP1[Nr].Set_usb_transfer(transfer);
-                        radioRSP1[Nr].Set_tuner_gain_mode(AGC);//Automatic manual gain mode
-                        radioRSP1[Nr].Set_if_frequency(IF_frequency);
-                    }
+                }
+                else
+                {
+                    radioRSP1[Nr].Set_bandwidth(bandwith);
+                    radioRSP1[Nr].Set_sample_format(format);
+                    flags.Radio_compresion_format[Nr + Flags.MAX_DONGLES_RTLSDR] = format;
+                    radioRSP1[Nr].SetSampleRate(rate);
+                    flags.rate[Nr + Flags.MAX_DONGLES_RTLSDR] = rate;
+                    flags.bandwitch[Nr + Flags.MAX_DONGLES_RTLSDR] = bandwith;
+                    radioRSP1[Nr].Set_usb_transfer(transfer);
+                    radioRSP1[Nr].Set_tuner_gain_mode(AGC);//Automatic manual gain mode
+                    radioRSP1[Nr].Set_if_frequency(IF_frequency);
+                }
 
 
                 if (ShiftOn)
@@ -1316,16 +1315,14 @@ namespace PasiveRadar
         private void WindowsUpdate()
         {
             for (int i = 0; i < Flags.ALL_DONGLES; i++)
-                if (windowRadar[i] != null)
-                    windowRadar[i].Update(flags);
+                windowRadar[i]?.Update(flags);
 
-            if (FlagsDelegate != null)
-                FlagsDelegate(flags);
+            FlagsDelegate?.Invoke(flags);
 
             foreach (WindowWave x in window_wave)
-                if (x != null) x.Update(flags);
+                x?.Update(flags);
             foreach (WindowFlow x in window_flow)
-                if (x != null) x.Update(flags);
+                x?.Update(flags);
 
             if (!runing)
                 UpdateAllScenes();
@@ -1454,8 +1451,7 @@ namespace PasiveRadar
 
             //////////////////////////////////////////
             flags.Copy(save_flags1);
-            if (FlagsDelegate != null)
-                FlagsDelegate(flags);
+            FlagsDelegate?.Invoke(flags);
 
             System.Threading.Thread.Sleep(100);//wait for changes, not the best solution
             radarControl1.UpdateAllControls();
@@ -1484,8 +1480,7 @@ namespace PasiveRadar
             ////////////////////////////////////////////////
             flags.Copy(save_flags2);
             // UpdateFrequencies(flags.LastActiveWindowRadio);
-            if (FlagsDelegate != null)
-                FlagsDelegate(flags);
+            FlagsDelegate?.Invoke(flags);
 
             System.Threading.Thread.Sleep(100);
             radarControl1.UpdateAllControls();
@@ -1596,6 +1591,11 @@ namespace PasiveRadar
         private void splitContainer4_MouseUp(object sender, MouseEventArgs e)
         {
             UpdateAllScenesWhenRunning();
+        }
+
+        private void Form1_Load_1(object sender, EventArgs e)
+        {
+            label2.Text = Flags.version;
         }
 
         private void button9_Click(object sender, EventArgs e)

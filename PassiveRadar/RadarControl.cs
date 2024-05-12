@@ -127,11 +127,6 @@ namespace PasiveRadar
 
         }
 
-
-        public void ActiveDeactivateColumnsControll(bool state)
-        {
-            // trackBar1.Enabled = state;
-        }
         private void SetActiveInactiveControls(Flags LocalFlags)
         {
 
@@ -318,16 +313,13 @@ namespace PasiveRadar
             else
                 trackBar6.Value = temp_6value;
 
-
-
-            SendSettings();//columns
-
+            label11.Text = "" + (uint)trackBar1.Value;
 
         }
 
         private void trackBar5_Scroll(object sender, EventArgs e)
         {
-            SendSettings();//rows
+            label12.Text = "" + (uint)trackBar5.Value;
         }
 
         private void trackBar6_Scroll(object sender, EventArgs e)
@@ -392,7 +384,7 @@ namespace PasiveRadar
 
         private void trackBar1_MouseUp(object sender, MouseEventArgs e)
         {
-
+            SendSettings();//columns
         }
 
         private void numericUpDown1_ValueChanged_1(object sender, EventArgs e)
@@ -409,6 +401,11 @@ namespace PasiveRadar
         private void trackBar11_Scroll(object sender, EventArgs e)
         {
             SendSettings();
+        }
+
+        private void trackBar5_MouseUp(object sender, MouseEventArgs e)
+        {
+            SendSettings();//rows
         }
     }
 }

@@ -292,5 +292,6 @@ namespace PasiveRadar
             if (SizeChangedx != null)
                 SizeChangedx(Nr);
         }
+ 
     }
 }
