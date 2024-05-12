@@ -106,7 +106,11 @@ namespace PasiveRadar
 
                 // This is the Doppler shift change between ticks according to Max Manning dopplerfish.com
                 r_b_c = (float)(sample_rate * Columns / ActivePlotAreaX / (doppler_zoom) * c / frequency / 100f); // TODO: / doppler_zoom; is in m/s
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> Wymagane
                 ColRow = Columns * Rows;
 
                 p = new Vector2[ColRow];
@@ -125,7 +129,7 @@ namespace PasiveRadar
 
                         for (uint j = 0; j < ReducedRows; j++)
                         {
-                            p[index_i + j] = new Vector2(x, y_bottom - (j * flags.NrReduceRows + 1) * zoomY);
+                            p[index_i + j] = new Vector2(x, y_bottom - zoomY * (6 + (j * flags.NrReduceRows)));//-zoomY correction for the size of square (pixel)
                         }
                     }
 
@@ -148,7 +152,7 @@ namespace PasiveRadar
             }
         }
 
-        public void Scene(float[] data, Flags flags, List<Finder.MapPoints> pointFromRadar = null, bool DrawScale = true)
+        public void Scene(float[] data, Flags flags, int radar_nr, List<Finder.MapPoints> pointFromRadar = null, bool DrawScale = true)
         {
 
             //Calculate frames per second
@@ -194,11 +198,11 @@ namespace PasiveRadar
                 string drawString;
 
                 spriteBatch.DrawString(spriteFont, "Doppler speed (km/h)", new Vector2(service.GraphicsDevice.Viewport.Width / 2 - 30, service.GraphicsDevice.Viewport.Height - 15), Color.White, 0, new Vector2(0, 0), 0.27f, SpriteEffects.None, 0);
-                spriteBatch.DrawString(spriteFont, "Radar", new Vector2(service.GraphicsDevice.Viewport.Width - 50, 1), graphisc.white, 0, new Vector2(0, 0), 0.3f, SpriteEffects.None, 0);
+                spriteBatch.DrawString(spriteFont, "Radar " + radar_nr + "   freq.  " + (int)(flags.frequency[radar_nr] / 1000000) + " MHz", new Vector2(service.GraphicsDevice.Viewport.Width - 160, 1), Color.Yellow, 0, new Vector2(0, 0), 0.3f, SpriteEffects.None, 0);
 
                 //Additional info frames/sec
-                drawString = "                  " + frames_per_sec + " fps    " + Form1.calculations_per_sec + " calc./s      " + Rows + " x " + Columns + "    Device: " + DeviceName;
-                spriteBatch.DrawString(spriteFont, drawString, new Vector2(1 + LeftMargin, 0), graphisc.white, 0, new Vector2(0, 0), 0.3f, SpriteEffects.None, 0);
+                drawString = "                  " + frames_per_sec + " fps    " + Form1.calculations_per_sec + " calc./s      " + Rows + " x " + Columns;//+ "    Device: " + DeviceName
+                spriteBatch.DrawString(spriteFont, drawString, new Vector2(1 + LeftMargin, 0), Color.White, 0, new Vector2(0, 0), 0.3f, SpriteEffects.None, 0);
 
                 spriteBatch.End();
                 spriteBatch.Begin();

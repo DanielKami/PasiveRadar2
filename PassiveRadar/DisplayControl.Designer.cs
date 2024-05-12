@@ -117,6 +117,10 @@
             this.RadioBuffer_control.LargeChange = 1;
             this.RadioBuffer_control.Location = new System.Drawing.Point(3, 208);
             this.RadioBuffer_control.Margin = new System.Windows.Forms.Padding(4);
+<<<<<<< HEAD
+=======
+            this.RadioBuffer_control.Maximum = 32;
+>>>>>>> Wymagane
             this.RadioBuffer_control.Minimum = 1;
             this.RadioBuffer_control.Name = "RadioBuffer_control";
             this.RadioBuffer_control.Size = new System.Drawing.Size(220, 56);

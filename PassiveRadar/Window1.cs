@@ -90,14 +90,14 @@ namespace PasiveRadar
 
 
         //Start rander the scene
-        public void RenderRadar(float[] data, Flags flags, List<Finder.MapPoints> pointFromRadar, bool DrawScale)
+        public void RenderRadar(float[] data, Flags flags, List<Finder.MapPoints> pointFromRadar, int radar_nr, bool DrawScale)
         {
 
             if (resizing) return;
 
             if (this.service.GraphicsDevice != null)
             {
-                mDrawRadar.Scene(data, flags, pointFromRadar, DrawScale);
+                mDrawRadar.Scene(data, flags, radar_nr, pointFromRadar, DrawScale);
 
                 try
                 {

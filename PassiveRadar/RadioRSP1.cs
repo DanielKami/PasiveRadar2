@@ -49,7 +49,7 @@ namespace PasiveRadar
         DLL_RSP1 dll;
 
         public Int16[] dataIQ = null;
-        uint RadioInternalBufferSize = 16 * 1024;// 16K IS RECOMENDET
+        ushort RadioInternalBufferSize = 16;// in kB
 
         Thread thread = null;
         private readonly Object _Lock = new Object();
@@ -70,7 +70,12 @@ namespace PasiveRadar
             Stop();
             //gap = (int)flags.Radio_buffer_size * 2;
             BufferSize = (int)flags.BufferSize;
+<<<<<<< HEAD
             RadioInternalBufferSize = (uint)Math.Pow(2, 5) * 1024;//flags.Radio_buffer_size
+=======
+            RadioInternalBufferSize = flags.Radio_buffer_size;
+            dll.get_BufforSize(RadioInternalBufferSize);
+>>>>>>> Wymagane
             dataIQ = new Int16[(int)flags.BufferSize];
         }
 
@@ -348,9 +353,14 @@ namespace PasiveRadar
             {
                 bit8 = false;
 
+<<<<<<< HEAD
                 int temp = dll.get_BufforSize() / 2;
+=======
+                int temp = dll.get_BufforSize(RadioInternalBufferSize) / 2;
+>>>>>>> Wymagane
                 Radio_buffer_size = (ushort)temp;
             }
+
             dll.InitBuffer(Radio_buffer_size * 2);
             Int16[] data_dongle = new Int16[Radio_buffer_size];
             Array.Clear(data_dongle, 0, Radio_buffer_size);

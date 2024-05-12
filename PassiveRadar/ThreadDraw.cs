@@ -62,7 +62,7 @@ namespace PasiveRadar
             //Draw radar only the scale and crosses
             {
                 for (int i = 0; i < Flags.ALL_DONGLES; i++)
-                    windowRadar[i].RenderRadar(PostProc[i], flags, null, true);
+                    windowRadar[i].RenderRadar(PostProc[i], flags, null, i, true);
             }
 
             //////////////////////////////////////////////////////////////
@@ -426,9 +426,9 @@ namespace PasiveRadar
                             ReduceRows(ref PostProc[i]);
 
                             if (flags.ShowMap == false)
-                                windowRadar[i].RenderRadar(PostProc[i], flags, null, true);//expensive
+                                windowRadar[i].RenderRadar(PostProc[i], flags, null, (int)i,true);//expensive
                             else   //Draw radar with map data, must be separated with this configuration. To corectly calculate the position all 4 radar data are necessary  
-                                windowRadar[i].RenderRadar(PostProc[i], flags, mMap.pointFromRadar[i], true);
+                                windowRadar[i].RenderRadar(PostProc[i], flags, mMap.pointFromRadar[i], (int)i, true);
                         }
                     }
                    );
