@@ -1,20 +1,20 @@
 # Flags general
-rate0 900001
-rate1 1920000
-rate2 1920000
-rate3 2000000
+rate0 1024000
+rate1 1024000
+rate2 1024000
+rate3 4000000
 bandwitch0 8000000
 bandwitch1 8000000
 bandwitch2 8000000
-bandwitch3 6000000
+bandwitch3 5000000
 BufferSizeRadio0 512
 BufferSizeRadio1 512
 BufferSizeRadio2 512
 BufferSizeRadio3 512
-frequency0 671000000
-frequency1 617515590.838241
-frequency2 491751443
-frequency3 491529831
+frequency0 725000000
+frequency1 235804455
+frequency2 544029822
+frequency3 650520967
 IF_freq0 450000
 IF_freq1 0
 IF_freq2 0
@@ -22,27 +22,27 @@ IF_freq3 450000
 Radio_gain0 10
 Radio_gain1 10
 Radio_gain2 10
-Radio_gain3 93
+Radio_gain3 102
 Radio_compresion_format0 0
 Radio_compresion_format1 0
 Radio_compresion_format2 0
-Radio_compresion_format3 1
+Radio_compresion_format3 4
 ColorTheme 2
 LastActiveWindowRadio 0
                       # Flags related to radar
 BufferSize 2097152
 symetrices True
-average 60
-DopplerZoom 14962
-PasiveGain 22.9
-Columns 103
-Rows 282
+average 19
+DopplerZoom 15725
+PasiveGain 30.5
+Columns 110
+Rows 342
 OpenCL  False
 DistanceShift 0
 CorrectBackground False
-NrCorrectionPoints 14
-ColectEvery 68
-CorectionWeight 0.47
+NrCorrectionPoints 29
+ColectEvery 3
+CorectionWeight 0.42
 ReduceRows 1
    #                  Flags related to translation
 DistanceFrom0line 5
@@ -64,11 +64,11 @@ FilterCentralFreq2 0
 FilterCentralFreq3 -1997105
 taps 56
 FilterType 5
-Radio_buffer_size 8
+Radio_buffer_size 5
                               # Site menu 
-ButtonRadio False
+ButtonRadio True
 ButtonDisplay False
-ButtonAudio False
+ButtonAudio True
 ButtonRadar False
 ButtonCorrelation False
                               # Flags related to display
@@ -82,13 +82,13 @@ showRadioFlow2 True
 showRadioFlow3 True
 showRadar0 False
 showRadar1 False
-showRadar2 True
-showRadar3 True
+showRadar2 False
+showRadar3 False
 showDifference False
 Amplification0 65
 Amplification1 52
 Amplification2 52
-Amplification3 23
+Amplification3 71
 Cumulation0 39
 Cumulation1 14
 Cumulation2 19
@@ -96,8 +96,8 @@ Cumulation3 18
 Level0 45
 Level1 0
 Level2 0
-Level3 114
-refresh_delay 57
+Level3 -23
+refresh_delay 22
 ColorThemeTable 0 1 0 1
 ColorThemeTable 1 0 0 0
 ColorThemeTable 2 0 0 0
