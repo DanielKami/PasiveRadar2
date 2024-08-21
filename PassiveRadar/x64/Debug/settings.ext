@@ -66,9 +66,9 @@ taps 56
 FilterType 5
 Radio_buffer_size 5
                               # Site menu 
-ButtonRadio True
+ButtonRadio False
 ButtonDisplay False
-ButtonAudio True
+ButtonAudio False
 ButtonRadar False
 ButtonCorrelation False
                               # Flags related to display
@@ -83,7 +83,7 @@ showRadioFlow3 True
 showRadar0 False
 showRadar1 False
 showRadar2 False
-showRadar3 True
+showRadar3 False
 showDifference False
 Amplification0 62
 Amplification1 50
