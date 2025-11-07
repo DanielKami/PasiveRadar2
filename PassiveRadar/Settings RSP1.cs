@@ -14,8 +14,6 @@ namespace PasiveRadar
         public delegate void MyDelegate(int Radio, int item);
         public delegate void MyDelegateSettings(int index, int gain_index, uint rate, uint bandwith, uint IF_freq, bool AGC, bool MGC, bool OffsetTuning, int FrequencyCorrection, int sampling, int gain_LNA, int gain_Mixer, int gain_Baseband, int transfer);
         public static event MyDelegate EventRadio;
-
-
         public static event MyDelegateSettings EventGain;
 
         public Settings_RSP1(int _TunerNr)
@@ -603,5 +601,79 @@ namespace PasiveRadar
             SendSettings();
         }
 
+        private void label13_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label12_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label16_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label17_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label15_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label14_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label5_Click_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label4_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label10_Click_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label9_Click_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label8_Click_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label6_Click_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label1_Click_1(object sender, EventArgs e)
+        {
+
+        }
     }
 }

@@ -22,6 +22,7 @@ namespace PasiveRadar
 
         public double frequency;
         public double rate;
+        public uint decimation;
         public float Gain;
         public uint BufferSize;
         public int Level;
@@ -65,7 +66,8 @@ namespace PasiveRadar
             CreateColorTable1(ColorThemeNr, UserColorTable, null);
 
             //Find how menny MHz is one pixel
-            MHz_perPixel = (float)(ActivePlotAreaX / (rate / 1000000));
+            if (decimation == 0) decimation = 1;
+            MHz_perPixel = (float)(ActivePlotAreaX / ((rate/decimation) / 1000000));
 
             //Round frequency to nearest digit after coma
             ScaleX_round = 1.0f * (int)(frequency / 10000000) * 10;

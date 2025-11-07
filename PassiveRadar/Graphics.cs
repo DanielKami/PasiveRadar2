@@ -26,9 +26,14 @@ namespace PasiveRadar
                 zoom = zoomY;
 
         }
+
+        private readonly Vector2 ZeroVector = Vector2.Zero; // Lub new Vector2(0, 0);
+        private const float DefaultLayerDepth = 0f;
+        private const float DefaultRotation = 0f;
         public void Point(Vector2 p, Color col)
         {
-            spriteBatch.Draw(texture, p, null, col, 0, new Vector2(0, 0), zoom, SpriteEffects.None, 0);
+
+            spriteBatch.Draw(texture, p, null, col, DefaultRotation, ZeroVector, zoom, SpriteEffects.None, DefaultLayerDepth);
         }
 
         public void Cross(GraphicsDeviceService serv, BasicEffect efect, Vector2 p, float radius, Color color)

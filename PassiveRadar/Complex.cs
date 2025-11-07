@@ -124,6 +124,10 @@ namespace PasiveRadar
             return (Math.Sqrt(Rea * Rea + Imag * Imag));
         }
 
+        public static readonly Complex Zero = new Complex(0.0f, 0.0f);
+
+       
+
     }
 
 }

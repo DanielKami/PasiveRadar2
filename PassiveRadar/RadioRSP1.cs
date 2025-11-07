@@ -6,11 +6,14 @@ namespace PasiveRadar
 {
     public class RadioRSP1 : IDisposable
     {
-        //    private readonly AutoResetEvent _signal = new AutoResetEvent();
+
+
         public int BufferSize;
         public int frequency;
         public int FreqCorrection;
         public uint rate;
+        public uint decymation = 1;
+        uint decymation_old = 1;
         public uint bandwith;
         public int gain = 80; //Max 102
         public DLL_RSP1.mirisdr_band_t band = 0;
@@ -37,7 +40,7 @@ namespace PasiveRadar
         public uint lost = 0;  //number of lost bytes per buffer size/ can be recalculated per [s]
 
         // Size of dongle buffer, it is smaller than buffer. Data are cumulated to generate full buffer. 
-        UInt16 Radio_buffer_size = 16384; //DEFAULT_BUF_LENGTH; MAXIMAL_BUF_LENGTH		(256 * 16384); MINIMAL_BUF_LENGTH		512
+        UInt16 Radio_buffer_size = 1024 * 32; //DEFAULT_BUF_LENGTH; MAXIMAL_BUF_LENGTH		(256 * 16384); MINIMAL_BUF_LENGTH		512
         public DLL_RSP1.transfer_t tt = DLL_RSP1.transfer_t.MIRISDR_TRANSFER_BULK;
         public DLL_RSP1.format_t format = DLL_RSP1.format_t.MIRISDR_FORMAT_AUTO_ON;
 
@@ -46,12 +49,20 @@ namespace PasiveRadar
         public int Number_of_gains = 102;
 
         DLL_RSP1 dll;
+        RadioPostProcessing postProcessing;
 
-        public Int16[] dataIQ = null;
+        //public static int staticBufferSize;
+
+        public float[] dataIQ = null;                //Dato for radar
+        public float[] dataIQ_radio = null;         //szhort data for radio display
+
+
+
+
         ushort RadioInternalBufferSize = 16;// in kB
 
         Thread thread = null;
-        private readonly Object _Lock = new Object();
+
         volatile bool exit = false;
         public volatile bool exited = true; //Flag is true when the thread is exited
 
@@ -61,17 +72,17 @@ namespace PasiveRadar
         public RadioRSP1()
         {
             dll = new DLL_RSP1();
+            postProcessing = new RadioPostProcessing();
             status = false;
         }
 
         public void InitBuffers(Flags flags)
         {
             Stop();
-            //gap = (int)flags.Radio_buffer_size * 2;
+
             BufferSize = (int)flags.BufferSize;
-            RadioInternalBufferSize = flags.Radio_buffer_size;
+            RadioInternalBufferSize = (ushort)flags.Radio_buffer_size;
             dll.get_BufforSize(RadioInternalBufferSize);
-            dataIQ = new Int16[(int)flags.BufferSize];
         }
 
         public void Start()
@@ -327,16 +338,14 @@ namespace PasiveRadar
                 exited = true;
                 return;
             }
-
+ 
             int r;
             bool bit8;
             UInt16 readed = 0;
-            int count = 0;
-            Int16[] temp_buffer = new Int16[BufferSize];
-            //Int16[] temp_buffer = new Int16[BufferSize + gap];
-            // Int16[] buf_zero = new Int16[gap];
+ 
 
-            //Array.Clear(buf_zero, 0, buf_zero.Length);
+            Int16[] data_dongle = new Int16[Radio_buffer_size];
+            Array.Clear(data_dongle, 0, Radio_buffer_size);
 
             //8/16bit format
             if (format == DLL_RSP1.format_t.MIRISDR_FORMAT_504_S8)
@@ -348,17 +357,18 @@ namespace PasiveRadar
             else
             {
                 bit8 = false;
-
                 int temp = dll.get_BufforSize(RadioInternalBufferSize) / 2;
                 Radio_buffer_size = (ushort)temp;
                 dll.InitBuffer(Radio_buffer_size * 2);
             }
 
+            if (decymation != decymation_old)
+            {
+                postProcessing.Init(BufferSize, Radio_buffer_size, rate, decymation);
+                decymation_old = decymation;
+            }
+            postProcessing.Init(BufferSize, data_dongle.Length, rate, decymation);
 
-            Int16[] data_dongle = new Int16[Radio_buffer_size];
-            Array.Clear(data_dongle, 0, Radio_buffer_size);
-            int reduced_buffer_size = BufferSize - Radio_buffer_size;
-            int buffer_multiplication = BufferSize / Radio_buffer_size - 1;//-1 because copy offset and the radio buffer must be smaller than BufferSize
             lost = 0;
 
             r = dll.streaming_start();
@@ -383,32 +393,8 @@ namespace PasiveRadar
                     break;
                 }
 
-                //For all configurations we stay with 8bit format later this can be converted to int (this thread is already working hard.
-                //first fill t he temp buffer
-                if (count < buffer_multiplication)
-                {
-                    Array.Copy(data_dongle, 0, temp_buffer, data_dongle.Length * count, data_dongle.Length);
-                    count++;
-                }
+                postProcessing.PostProc(data_dongle, ref dataIQ, ref  dataIQ_radio);
 
-                //////Make a place for new data
-                Array.Copy(temp_buffer, data_dongle.Length, temp_buffer, 0, reduced_buffer_size);
-
-                ////Add to the end of temp_buffer a new data (fast)
-                Array.Copy(data_dongle, 0, temp_buffer, reduced_buffer_size, data_dongle.Length);
-
-
-                //Array.Copy(temp_buffer, data_dongle.Length + gap, temp_buffer, 0, reduced_buffer_size - gap);//make a place for new data
-                //Array.Copy(data_dongle, 0, temp_buffer, reduced_buffer_size, data_dongle.Length);// add new data dongle
-                //Array.Copy(buf_zero, 0, temp_buffer, reduced_buffer_size - gap, gap); //    set gap with 0
-
-
-                //Protct reading data
-                lock (_Lock)
-                {
-                    //copy temp to dataIQ must be protected, acces by other threads
-                    Array.Copy(temp_buffer, 0, dataIQ, 0, dataIQ.Length);
-                }
             }
 
             r = dll.streaming_stop();
@@ -420,6 +406,7 @@ namespace PasiveRadar
 
             exited = true;
         }
+
 
         public string GetName()
         {

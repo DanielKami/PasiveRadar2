@@ -39,7 +39,7 @@ namespace PasiveRadar
         //private int zoom_half;
         private float r_b_c;
         private double frequency;
-        private float sample_rate;
+        private float bandwitch;
         private uint ColRow;
         private float doppler_zoom;
         private float step_y;
@@ -86,7 +86,7 @@ namespace PasiveRadar
                     BufferSize = flags.BufferSize;
                     CreateColorTable1(ColorThemeNr, flags.ColorThemeTable, flags);
                     frequency = flags.frequency[dongle_nr];
-                    sample_rate = flags.rate[dongle_nr];
+                    bandwitch = flags.bandwitch[dongle_nr];
                 }
 
                 x_left = LeftMargin + 15;
@@ -105,7 +105,7 @@ namespace PasiveRadar
                 x_step = ActivePlotAreaX / x_ticks;
 
                 // This is the Doppler shift change between ticks according to Max Manning dopplerfish.com
-                r_b_c = (float)(sample_rate * Columns / ActivePlotAreaX / (doppler_zoom) * c / frequency / 100f); // TODO: / doppler_zoom; is in m/s
+                r_b_c = (float)(bandwitch * Columns / ActivePlotAreaX / (doppler_zoom) * c / frequency / 100f); // TODO: / doppler_zoom; is in m/s
 
                 ColRow = Columns * Rows;
 
@@ -141,7 +141,7 @@ namespace PasiveRadar
                 // Scale Y
                 Up = ActivePlotAreaY;
                 step_y = ActivePlotAreaY / y_ticks;
-                float row_to_km = c / 10000 / sample_rate / 2;//divided by 2 because the signal is in format real bit + imaginary part bit
+                float row_to_km = c / 10000 / bandwitch / 2;//divided by 2 because the signal is in format real bit + imaginary part bit
                 Yscale_shift = DistanceShift * row_to_km;
 
                 scaleYfactor = row_to_km / zoomY;

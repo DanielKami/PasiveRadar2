@@ -74,6 +74,7 @@
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(0, 16);
             this.label10.TabIndex = 73;
+            this.label10.Click += new System.EventHandler(this.label10_Click_1);
             // 
             // label9
             // 
@@ -85,6 +86,7 @@
             this.label9.Size = new System.Drawing.Size(111, 18);
             this.label9.TabIndex = 72;
             this.label9.Text = "Sampling mode";
+            this.label9.Click += new System.EventHandler(this.label9_Click_1);
             // 
             // comboBox3
             // 
@@ -116,6 +118,7 @@
             this.label8.Size = new System.Drawing.Size(75, 18);
             this.label8.TabIndex = 70;
             this.label8.Text = "Main  gain";
+            this.label8.Click += new System.EventHandler(this.label8_Click_1);
             // 
             // label7
             // 
@@ -139,6 +142,7 @@
             this.label6.Size = new System.Drawing.Size(53, 18);
             this.label6.TabIndex = 68;
             this.label6.Text = "Device";
+            this.label6.Click += new System.EventHandler(this.label6_Click_1);
             // 
             // comboBox2
             // 
@@ -205,6 +209,7 @@
             this.label1.Size = new System.Drawing.Size(40, 18);
             this.label1.TabIndex = 63;
             this.label1.Text = "0";
+            this.label1.Click += new System.EventHandler(this.label1_Click_1);
             // 
             // checkBox1
             // 
@@ -242,6 +247,7 @@
             this.label4.Size = new System.Drawing.Size(74, 18);
             this.label4.TabIndex = 80;
             this.label4.Text = "Baseband";
+            this.label4.Click += new System.EventHandler(this.label4_Click);
             // 
             // label3
             // 
@@ -253,6 +259,7 @@
             this.label3.Size = new System.Drawing.Size(44, 18);
             this.label3.TabIndex = 79;
             this.label3.Text = "Mixer";
+            this.label3.Click += new System.EventHandler(this.label3_Click);
             // 
             // label2
             // 
@@ -264,6 +271,7 @@
             this.label2.Size = new System.Drawing.Size(36, 18);
             this.label2.TabIndex = 78;
             this.label2.Text = "LNA";
+            this.label2.Click += new System.EventHandler(this.label2_Click);
             // 
             // trackBar4
             // 
@@ -351,6 +359,7 @@
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(40, 16);
             this.label5.TabIndex = 85;
+            this.label5.Click += new System.EventHandler(this.label5_Click_1);
             // 
             // checkBox2
             // 
@@ -373,6 +382,7 @@
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(0, 16);
             this.label13.TabIndex = 88;
+            this.label13.Click += new System.EventHandler(this.label13_Click);
             // 
             // comboBox5
             // 
@@ -400,6 +410,7 @@
             this.label14.Size = new System.Drawing.Size(88, 18);
             this.label14.TabIndex = 90;
             this.label14.Text = "IF frequency";
+            this.label14.Click += new System.EventHandler(this.label14_Click);
             // 
             // label15
             // 
@@ -414,6 +425,7 @@
             this.label15.TabIndex = 91;
             this.label15.Text = "XTAL frequency";
             this.label15.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            this.label15.Click += new System.EventHandler(this.label15_Click);
             // 
             // label12
             // 
@@ -425,6 +437,7 @@
             this.label12.Size = new System.Drawing.Size(74, 18);
             this.label12.TabIndex = 94;
             this.label12.Text = "Baseband";
+            this.label12.Click += new System.EventHandler(this.label12_Click);
             // 
             // label16
             // 
@@ -436,6 +449,7 @@
             this.label16.Size = new System.Drawing.Size(44, 18);
             this.label16.TabIndex = 93;
             this.label16.Text = "Mixer";
+            this.label16.Click += new System.EventHandler(this.label16_Click);
             // 
             // label17
             // 
@@ -447,6 +461,7 @@
             this.label17.Size = new System.Drawing.Size(36, 18);
             this.label17.TabIndex = 92;
             this.label17.Text = "LNA";
+            this.label17.Click += new System.EventHandler(this.label17_Click);
             // 
             // Settings_RSP1
             // 

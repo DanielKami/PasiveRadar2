@@ -16,9 +16,6 @@ namespace PasiveRadar
         FFT fft;
 
         private Thread ThreadFFT;
-
-
-
         public Calculate()
         {
             fft = new FFT();
@@ -32,18 +29,16 @@ namespace PasiveRadar
             IntermediateBuffer = new float[BufferSize * (cumulate_max + 1)];
         }
 
-
-
-        public uint CopyToComplex(Int16[] datain, ref Complex[] DataOut)
+        public uint CopyToComplex(float[] datain, ref Complex[] DataOut)
         {
             uint a;
-            if (DataOut.Length < datain.Length / 2)
-                for (uint i = 0; i < DataOut.Length / 2 - 1; i++)
-                {
-                    DataOut[i].Rea = datain[a = i * 2];
-                    DataOut[i].Imag = datain[a + 1];
-                }
-
+            if (datain != null)
+                if (DataOut.Length < datain.Length / 2)
+                    for (uint i = 0; i < DataOut.Length / 2 - 1; i++)
+                    {
+                        DataOut[i].Rea = datain[a = i * 2];
+                        DataOut[i].Imag = datain[a + 1];
+                    }
             return 0;
         }
 
@@ -52,7 +47,6 @@ namespace PasiveRadar
             ThreadFFT = new Thread(() => ProcessFFT(DataIn, DataOut));
             ThreadFFT.Priority = ThreadPriority.Lowest;
             ThreadFFT.Start();
-
         }
         public void FFTWaitToComplete()
         {

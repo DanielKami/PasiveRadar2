@@ -1,19 +1,23 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace PasiveRadar
 {
-    public class FindRSP1
+    public class FindAirSpy
     {
-        DLL_RSP1 dll;
+        DLL_AirSpy dll;
         IntPtr dev = IntPtr.Zero;
         public int[] StatusList;
         public string[] NameList;
         public uint[] List; //List stores the index of device which can be opened
         public int NrOfDevices = 0;
 
-        public FindRSP1()
+        public FindAirSpy()
         {
-            dll = new DLL_RSP1();
+            dll = new DLL_AirSpy();
             NrOfDevices = 1;
             List = new uint[256];
             NameList = new string[256];
@@ -21,6 +25,8 @@ namespace PasiveRadar
             StatusList = new int[256];
             StatusList[0] = 1;
         }
+
+
         /*param index of device to be opened.
         * \return -1 if no device found at index
         * \return -2 if cannot open device.
@@ -31,12 +37,19 @@ namespace PasiveRadar
         {
             int r = -1;
             string manufact = "";
-            string product = "";
+            string product = "AirSpy";
             string serial = "";
 
-            //do poprawy
-            NrOfDevices = 1;//do poprawy dll.get_device_count();
-            if (NrOfDevices == -1) return r;
+            bool res = dll.Open();
+            if (res)
+            {
+                NrOfDevices = 1;// dll.get_device_count();
+            }
+            else
+            {
+                return -1;
+            }
+            // if (NrOfDevices == -1) return r;
 
             //int nrdev=dll.;
             //String str = "Can't open rtlsdr dongle. " + nrdev;
@@ -45,17 +58,20 @@ namespace PasiveRadar
             for (uint i = 0; i < NrOfDevices; i++)
             {
 
-                int res = dll.open(i);
-
-                r = dll.get_device_usb_strings(i, ref manufact, ref product, ref serial);
-                NameList[i + 1] = "(" + i + ") " + manufact + " " + product + " " + serial;
+                // bool res = DLL_RX888.Init();
+                //string Id = dll.GetIBoardd();
+                //UInt64 SN = dll.GetSN();
+                // r = dll.get_device_usb_strings(i, ref manufact, ref product, ref serial);
+                //string version = dll.GetVersion();
+                NameList[i + 1] = "(" + i + ") " + manufact + " " + product ;
                 List[i + 1] = i;
 
-                dll.close();
+               dll.Close();
 
             }
             NrOfDevices++;
             return r;
         }
     }
+
 }

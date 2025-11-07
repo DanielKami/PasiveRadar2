@@ -10,6 +10,7 @@ namespace PasiveRadar
 
         public double frequency;
         public double rate;
+        public double decimation;
         public int Level;
         public float Gain;
         public uint BufferSize;
@@ -141,7 +142,10 @@ namespace PasiveRadar
             Height_BottomMargin = panelViewport.Height - BottomMargin;
             Width_RightMargin = panelViewport.Width - RightMargin;
             //Find how menny MHz is one pixel
-            MHz_perPixel = (float)(ActivePlotAreaX / (rate / 1000000));
+ 
+
+            if (decimation == 0) decimation = 1;
+            MHz_perPixel = (float)(ActivePlotAreaX / ((rate / decimation) / 1000000));
 
             //Round frequency to nearest digit after coma
             ScaleX_round = 1.0f * (int)(frequency / 10000000) * 10;
@@ -150,6 +154,7 @@ namespace PasiveRadar
 
             //Number of pixels to shift
             PixelsXToStart = (ActivePlotAreaX) / 2 - ScaleX_delta * MHz_perPixel + LeftMargin;
+
             stepX = (float)Math.Round(100.0 / MHz_perPixel, 1);
             ScaleStepX = stepX * MHz_perPixel;
 

@@ -35,17 +35,16 @@ namespace PasiveRadar
 
         void mWinForm_DeviceReset(Object sender, EventArgs e)
         {
-
             DeviceReset();
             mDrawWave.SizeChanged(panelViewport, service.GraphicsDevice, service, spriteBatch, spriteFont, mSimpleEffect);
             mDrawRadar.SizeChanged(panelViewport, service.GraphicsDevice, service, spriteBatch, spriteFont, mSimpleEffect, texture);
-
         }
 
         public void Update(Flags flags)
         {
             mDrawWave.frequency = flags.frequency[dongle_nr];
             mDrawWave.rate = flags.rate[dongle_nr];
+            mDrawWave.decimation = flags.decimation[dongle_nr];
             mDrawWave.Gain = flags.Amplification[dongle_nr];
             mDrawWave.ColorThemeNr = flags.ColorTheme;
             mDrawWave.BufferSize = flags.BufferSizeRadio[dongle_nr];

@@ -12,6 +12,8 @@ namespace PasiveRadar
 {
     public unsafe class Dll_RtlSdr
     {
+        
+
         private IntPtr pnt;
         public IntPtr ctx = IntPtr.Zero;  //Libusb context
 
@@ -688,14 +690,14 @@ namespace PasiveRadar
             Marshal.Copy(pnt, tmp, 0, lenght);
 
             //rotate
-            rotate_180(tmp);//fast
+            //rotate_180(tmp);//fast
 
             //convert to int
             for (int i = 0; i < lenght; i++)
             {
                 data[i] = (short)tmp[i];
                 data[i] -= 127;
-                data[i] <<= 4;  //increase signal
+                //data[i] <<= 4;  //increase signal
             }
 
             return r;

@@ -12,6 +12,8 @@ namespace PasiveRadar
         public int frequency;
         public int FreqCorrection;
         public uint rate;
+        public uint decymation = 1;
+        uint decymation_old = 1;
         public int dev_number;//in usb port
         public bool status;//it is open or close
         public int item;
@@ -34,15 +36,17 @@ namespace PasiveRadar
         public int[] nr_of_gains_in_stage;
 
         Dll_RtlSdr dll;
-        //SDR1
-        DLL_RSP1 dllplay; //SDR1 radio controll
+        RadioPostProcessing postProcessing;
+
 
         IntPtr dev = IntPtr.Zero;
         public Int16[] data_dongle = null;
-        public short[] dataIQ = null;
+        public float[] dataIQ = null;
+        public float[] dataIQ_radio = null;
 
         Thread thread = null;
-        private readonly Object _Lock = new Object();
+        private readonly object _dataIQLock = new object();
+        private readonly object _dataIQ_radioLock = new object();
         volatile bool exit = false;
         volatile bool exited = false; //Flag is tru when the thread is exited
 
@@ -51,6 +55,7 @@ namespace PasiveRadar
         public RadioRtlSdr()
         {
             dll = new Dll_RtlSdr();
+            postProcessing = new RadioPostProcessing();
 
             //Gains RTLSDR
             tuner_gain_list = new int[256];
@@ -62,10 +67,10 @@ namespace PasiveRadar
         {
             Stop();
             BufferSize = (int)flags.BufferSize;
-            
+
             Radio_buffer_size = (ushort)(Math.Pow(2, 5) * 1024); //flags.Radio_buffer_size max is 6 ushort Od 0 do 65 535
             dll.InitBuffer((int)flags.BufferSize);
-            dataIQ = new Int16[(int)flags.BufferSize];
+
             data_dongle = new short[Radio_buffer_size];
             if (dev != null)
                 dll.reset_buffer(dev);
@@ -360,10 +365,8 @@ namespace PasiveRadar
             int readed = 0;
             if (dev == IntPtr.Zero) return;
 
-            int count = 0;
-            int buffer_multiplication = BufferSize / Radio_buffer_size - 1;//-1 because copy offset and the radio buffer must be smaller than BufferSize
-            short[] temp_buffer = new short[BufferSize];
-            int reduced_buffer_size = BufferSize - data_dongle.Length;
+            postProcessing.Init(BufferSize, data_dongle.Length, rate, decymation);
+
 
             while (!exit)
             {
@@ -379,27 +382,14 @@ namespace PasiveRadar
                     continue;
                 }
 
-
-
-                //first fill the temp buffer
-                if (count < buffer_multiplication)
+                if (decymation != decymation_old)
                 {
-                    Array.Copy(data_dongle, 0, temp_buffer, data_dongle.Length * count, data_dongle.Length);
-                    count++;
+                    postProcessing.Init(BufferSize, Radio_buffer_size, rate, decymation);
+                    decymation_old = decymation;
                 }
+                postProcessing.PostProc(data_dongle, ref dataIQ, ref dataIQ_radio);
 
-                //Make a place for new data
-                Array.Copy(temp_buffer, data_dongle.Length, temp_buffer, 0, reduced_buffer_size);
-                 //Add to the end of temp_buffer a new data (fast)
-                Array.Copy(data_dongle, 0, temp_buffer, reduced_buffer_size, data_dongle.Length  ); //??    Array src,    int srcOffset,    Array dst,    int dstOffset,    int count
 
-                //Protct reading data
-                lock (_Lock)
-                {
-                    //copy temp to dataIQ must be protected, acces by other threads
-                    Array.Copy(temp_buffer, 0, dataIQ, 0, dataIQ.Length );
-
-                }
             }
             exited = true;
         }

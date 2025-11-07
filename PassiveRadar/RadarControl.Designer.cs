@@ -95,7 +95,8 @@
             "512k",
             "1024k",
             "2048k (critical)",
-            "4096k (critical)"});
+            "4096k (critical)",
+            "8192K(exp)"});
             this.comboBox1.Location = new System.Drawing.Point(4, 350);
             this.comboBox1.Margin = new System.Windows.Forms.Padding(4);
             this.comboBox1.Name = "comboBox1";
@@ -175,7 +176,7 @@
             this.trackBar3.LargeChange = 10;
             this.trackBar3.Location = new System.Drawing.Point(0, 210);
             this.trackBar3.Margin = new System.Windows.Forms.Padding(4);
-            this.trackBar3.Maximum = 20000;
+            this.trackBar3.Maximum = 30000;
             this.trackBar3.Minimum = 1;
             this.trackBar3.Name = "trackBar3";
             this.trackBar3.Size = new System.Drawing.Size(222, 56);

@@ -58,11 +58,7 @@ namespace PasiveRadar
 
             trackBar3.Value = LocalFlags.refresh_delay;
             label6.Text = "" + trackBar3.Value + " ms";
-<<<<<<< HEAD
-            if (LocalFlags.Radio_buffer_size > RadioBuffer_control.Maximum) LocalFlags.Radio_buffer_size = (uint)RadioBuffer_control.Maximum;
-=======
             if (LocalFlags.Radio_buffer_size > RadioBuffer_control.Maximum) LocalFlags.Radio_buffer_size = (ushort)RadioBuffer_control.Maximum;
->>>>>>> Wymagane
             RadioBuffer_control.Value = (int)LocalFlags.Radio_buffer_size;
 
             label2.Text = "" + LocalFlags.Radio_buffer_size;

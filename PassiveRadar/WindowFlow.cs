@@ -39,6 +39,7 @@ namespace PasiveRadar
         {
             mDrawFlow.frequency = flags.frequency[dongle_nr];
             mDrawFlow.rate = flags.rate[dongle_nr];
+            mDrawFlow.decimation = flags.decimation[dongle_nr];
             mDrawFlow.Gain = flags.Amplification[dongle_nr];
             mDrawFlow.BufferSize = flags.BufferSizeRadio[dongle_nr];
             mDrawFlow.Level = flags.Level[dongle_nr];

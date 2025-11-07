@@ -2,18 +2,19 @@
 
 namespace PasiveRadar
 {
-    public class FindRSP1
+
+    public class FindRX888
     {
-        DLL_RSP1 dll;
+        DLL_RX888 dll;
         IntPtr dev = IntPtr.Zero;
         public int[] StatusList;
         public string[] NameList;
         public uint[] List; //List stores the index of device which can be opened
         public int NrOfDevices = 0;
 
-        public FindRSP1()
+        public FindRX888()
         {
-            dll = new DLL_RSP1();
+            dll = new DLL_RX888();
             NrOfDevices = 1;
             List = new uint[256];
             NameList = new string[256];
@@ -21,6 +22,8 @@ namespace PasiveRadar
             StatusList = new int[256];
             StatusList[0] = 1;
         }
+
+
         /*param index of device to be opened.
         * \return -1 if no device found at index
         * \return -2 if cannot open device.
@@ -34,9 +37,16 @@ namespace PasiveRadar
             string product = "";
             string serial = "";
 
-            //do poprawy
-            NrOfDevices = 1;//do poprawy dll.get_device_count();
-            if (NrOfDevices == -1) return r;
+            bool res = dll.Open();
+            if (res)
+            {
+                NrOfDevices = 1;// dll.get_device_count();
+            }
+            else
+            {
+                return -1;
+            }
+            // if (NrOfDevices == -1) return r;
 
             //int nrdev=dll.;
             //String str = "Can't open rtlsdr dongle. " + nrdev;
@@ -45,13 +55,14 @@ namespace PasiveRadar
             for (uint i = 0; i < NrOfDevices; i++)
             {
 
-                int res = dll.open(i);
+                // bool res = DLL_RX888.Init();
 
-                r = dll.get_device_usb_strings(i, ref manufact, ref product, ref serial);
+                // r = dll.get_device_usb_strings(i, ref manufact, ref product, ref serial);
+                product = (dll.get_name()).ToString();
                 NameList[i + 1] = "(" + i + ") " + manufact + " " + product + " " + serial;
                 List[i + 1] = i;
 
-                dll.close();
+                //DLL_RX888.Close();
 
             }
             NrOfDevices++;

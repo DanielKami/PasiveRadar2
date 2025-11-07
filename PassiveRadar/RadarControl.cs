@@ -54,6 +54,7 @@ namespace PasiveRadar
             if (LocalFlags.BufferSize == 1024 * 1024) comboBox1.SelectedIndex = 2;
             if (LocalFlags.BufferSize == 1024 * 2048) comboBox1.SelectedIndex = 3;
             if (LocalFlags.BufferSize == 1024 * 4096) comboBox1.SelectedIndex = 4;
+            if (LocalFlags.BufferSize == 1024 * 8192) comboBox1.SelectedIndex = 5;
 
             trackBar2.Value = (int)(LocalFlags.PasiveGain * 10);
             trackBar3.Value = (int)LocalFlags.DopplerZoom;
@@ -145,7 +146,7 @@ namespace PasiveRadar
             if (comboBox1.SelectedIndex == 2) BufferSize = 1024 * 1024;
             if (comboBox1.SelectedIndex == 3) BufferSize = 1024 * 2048;
             if (comboBox1.SelectedIndex == 4) BufferSize = 1024 * 4096;
-
+            if (comboBox1.SelectedIndex == 5) BufferSize = 1024 * 8192;
 
 
             SendSettings();

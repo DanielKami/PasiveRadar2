@@ -8,16 +8,20 @@ namespace PasiveRadar
 {
     public class Flags
     {
-        public const string version = "v. 2.7";   //version of Radar
-        public const uint MAX_DONGLES_RTLSDR = 3;        //Number of suportet dongles (the number can be bigger but for radar it is no really sense)
+        public const string version = "v. 2.8";   //version of Radar
+        public const uint MAX_DONGLES_RTLSDR = 1;        //Number of suportet dongles (the number can be bigger but for radar it is no really sense)
         public const uint MAX_DONGLES_RSP1 = 1;      //Is a Miri 2500 device present
-        public const uint ALL_DONGLES = MAX_DONGLES_RTLSDR + MAX_DONGLES_RSP1;
+        public const uint MAX_DONGLES_RX888 = 1;      //Is a Miri 2500 device present
+        public const uint MAX_DONGLES_AIRSPY = 1;
+
+        public const uint ALL_DONGLES = MAX_DONGLES_RTLSDR + MAX_DONGLES_RSP1+ MAX_DONGLES_RX888+ MAX_DONGLES_AIRSPY;
         public const uint MAX_DEVICE_NAME = 256;  //number of characters dedicated to the name of CUDA device
         public const int ColorTableSize = 1024;   //Size of color table
         public const uint FramePerSec = 39;       //Integrated Graphics card frames/s (radar and radio windows drawing)
         public Flags()
         {
             rate = new float[ALL_DONGLES];
+            decimation = new uint[ALL_DONGLES];
             bandwitch = new uint[ALL_DONGLES];
             frequency = new double[ALL_DONGLES];
             Amplification = new int[ALL_DONGLES];
@@ -29,7 +33,9 @@ namespace PasiveRadar
             BufferSizeRadio = new uint[ALL_DONGLES];
             showRadar = new bool[ALL_DONGLES];
             IF_freq = new uint[ALL_DONGLES];
-            Radio_gain = new int[ALL_DONGLES];
+            Radio_gain1 = new int[ALL_DONGLES];
+            Radio_gain2 = new int[ALL_DONGLES];
+            Radio_gain3 = new int[ALL_DONGLES];
             Radio_compresion_format = new int[ALL_DONGLES];
             //Flags general
             for (int i = 0; i < ALL_DONGLES; i++)
@@ -45,7 +51,7 @@ namespace PasiveRadar
                 FilterCentralFreq[i] = 0;
                 BufferSizeRadio[i] = 512;
                 IF_freq[i] = 0;
-                Radio_gain[i] = 10;
+                Radio_gain1[i] = 10;
             }
 
 
@@ -68,6 +74,7 @@ namespace PasiveRadar
 
         //Flag related to radio
         public float[] rate;                                    //Bit rate of the IF from reciver
+        public uint[] decimation;
         public uint[] bandwitch;
         public double[] frequency;                              //Frequency of  dongle
         public int[] Amplification;                             //Amplification of data in view window from radio i
@@ -77,14 +84,18 @@ namespace PasiveRadar
         public bool[] showRadioFlow;
         public int LastActiveWindowRadio = 0;                   //Last use window radio numer
         public int Nr_active_radio = 0;                         //Number of active radio recivers
-        public uint Radio_buffer_size = 5;                     //The buffer_Size * 1024 bytes. The size of buffer used by dongles RSP1. Bigger buffer better consistency of signal but more unstable during hard changes and wars responce. Smaller buffer faster responce and beter stability at changes but warse consistency of data.
+        public uint Radio_buffer_size = 16;                     //The buffer_Size * 1024 bytes. The size of buffer used by dongles RSP1. Bigger buffer better consistency of signal but more unstable during hard changes and wars responce. Smaller buffer faster responce and beter stability at changes but warse consistency of data.
         public bool format8_16 = false;                         //Data format 8bit/16bit. important for radar   (to divide the signal on float to high amplitude  
         public uint[] IF_freq = null;                           //RSP1  IF_freq
-        public int[] Radio_gain = null;                         //RSP1  radio gain
+        public int[] Radio_gain1 = null;                         //RSP1  radio gain
+        public int[] Radio_gain2 = null;                         //RSP1  radio gain
+        public int[] Radio_gain3 = null;                         //RSP1  radio gain
         public int[] Radio_compresion_format = null;            //Compresion format of data for RSP1
+
         //Flags related to radar
+        public bool two_dongles = false;                        //false-autocorelation; true two dongles correlation
         public uint[] BufferSizeRadio;                          //Buffer for FFT   of radio
-        public uint BufferSize = 1024 * 256;                    //Buffer for FFT   of radar                            
+        public uint BufferSize = 1024 * 1024;                    //Buffer for FFT   of radar                            
         public bool remove_symetrics = false;                   //Flag indicate if the symetric signals in radar has to be removed
         public int average = 5;                                 //Average Radar frames over specified number
         public short scale_type = 0;                            //sygnal scale in radar 0-lin, 1-sqrt, 2-log
@@ -221,6 +232,8 @@ namespace PasiveRadar
                 yourText += "bandwitch" + ix + " " + bandwitch[ix].ToString(CultureInfo.InvariantCulture) + "\n";
             for (int ix = 0; ix < ALL_DONGLES; ix++)
                 yourText += "BufferSizeRadio" + ix + " " + BufferSizeRadio[ix].ToString(CultureInfo.InvariantCulture) + "\n";
+            for (int ix = 0; ix < ALL_DONGLES; ix++)
+                yourText += "Decimation" + ix + " " + decimation[ix].ToString(CultureInfo.InvariantCulture) + "\n";
             //yourText += "rate1 " + rate1.ToString(CultureInfo.InvariantCulture) + "\n";
             for (int ix = 0; ix < ALL_DONGLES; ix++)
                 yourText += "frequency" + ix + " " + frequency[ix].ToString(CultureInfo.InvariantCulture) + "\n";
@@ -229,7 +242,12 @@ namespace PasiveRadar
             for (int ix = 0; ix < ALL_DONGLES; ix++)
                 yourText += "IF_freq" + ix + " " + IF_freq[ix].ToString(CultureInfo.InvariantCulture) + "\n";
             for (int ix = 0; ix < ALL_DONGLES; ix++)
-                yourText += "Radio_gain" + ix + " " + Radio_gain[ix].ToString(CultureInfo.InvariantCulture) + "\n";
+                yourText += "Radio_gain1" + ix + " " + Radio_gain1[ix].ToString(CultureInfo.InvariantCulture) + "\n";
+            for (int ix = 0; ix < ALL_DONGLES; ix++)
+                yourText += "Radio_gain2" + ix + " " + Radio_gain2[ix].ToString(CultureInfo.InvariantCulture) + "\n";
+            for (int ix = 0; ix < ALL_DONGLES; ix++)
+                yourText += "Radio_gain3" + ix + " " + Radio_gain3[ix].ToString(CultureInfo.InvariantCulture) + "\n";
+
             for (int ix = 0; ix < ALL_DONGLES; ix++)
                 yourText += "Radio_compresion_format" + ix + " " + Radio_compresion_format[ix].ToString(CultureInfo.InvariantCulture) + "\n";
             
@@ -370,8 +388,11 @@ namespace PasiveRadar
                 else if (parameter == "FilterCentralFreq" + ix) float.TryParse(value, out FilterCentralFreq[ix]);//Flags related IQ strem and filters 
                 else if (parameter == "BufferSizeRadio" + ix) UInt32.TryParse(value, out BufferSizeRadio[ix]);
                 else if (parameter == "bandwitch" + ix) UInt32.TryParse(value, out bandwitch[ix]);
+                else if (parameter == "Decimation" + ix) UInt32.TryParse(value, out decimation[ix]);
                 else if (parameter == ("IF_freq" + ix)) UInt32.TryParse(value, out IF_freq[ix]);
-                else if (parameter == ("Radio_gain" + ix)) Int32.TryParse(value, out Radio_gain[ix]);
+                else if (parameter == ("Radio_gain1" + ix)) Int32.TryParse(value, out Radio_gain1[ix]);
+                else if (parameter == ("Radio_gain2" + ix)) Int32.TryParse(value, out Radio_gain2[ix]);
+                else if (parameter == ("Radio_gain3" + ix)) Int32.TryParse(value, out Radio_gain3[ix]);
                 else if (parameter == ("Radio_compresion_format" + ix)) Int32.TryParse(value, out Radio_compresion_format[ix]);
             }
  

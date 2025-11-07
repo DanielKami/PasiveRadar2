@@ -754,7 +754,7 @@
             this.Controls.Add(this.label46);
             this.Controls.Add(this.label47);
             this.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "TuningNumber";
             this.Size = new System.Drawing.Size(439, 48);
             this.Load += new System.EventHandler(this.TuningNumber_Load);

@@ -33,10 +33,15 @@ namespace PasiveRadar
             type = _type;
             Nr = (int)_Nr;
 
-            if (Nr > Flags.MAX_DONGLES_RTLSDR - 1)
-                this.Text = "Radio  " + Nr + "  RSP1 ";
-            else
+            if (Nr >= 0 && Nr < Flags.MAX_DONGLES_RTLSDR)
                 this.Text = "Radio  " + Nr + "  RtlSdr ";
+            else if (Nr >= Flags.MAX_DONGLES_RTLSDR && Nr < Flags.MAX_DONGLES_RTLSDR + Flags.MAX_DONGLES_RSP1)
+                this.Text = "Radio  " + Nr + "  RSP1 ";
+            else if (Nr >= Flags.MAX_DONGLES_RTLSDR + Flags.MAX_DONGLES_RSP1 && Nr < Flags.MAX_DONGLES_RTLSDR + Flags.MAX_DONGLES_RSP1 + Flags.MAX_DONGLES_RX888)
+                this.Text = "Radio  " + Nr + "  RX888 ";
+            else if (Nr >= Flags.MAX_DONGLES_RTLSDR + Flags.MAX_DONGLES_RSP1 + Flags.MAX_DONGLES_RX888 && Nr < Flags.MAX_DONGLES_RTLSDR + Flags.MAX_DONGLES_RSP1 + Flags.MAX_DONGLES_RX888 + Flags.MAX_DONGLES_AIRSPY)
+                this.Text = "Radio  " + Nr + "  AirSpy";
+
 
 
             //Get info from TuningNumber
@@ -292,6 +297,6 @@ namespace PasiveRadar
             if (SizeChangedx != null)
                 SizeChangedx(Nr);
         }
- 
+
     }
 }

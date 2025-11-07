@@ -349,20 +349,15 @@ namespace PasiveRadar
 
                 Marshal.Copy(pnt, tmp, 0, len);
 
-                rotate_180_s8(tmp);
-
                 //convert to int
                 for (int i = 0; i < len; i++)
                 {
-                    buf[i] = tmp[i];
-                    buf[i] -= 127;
-                    buf[i] <<= 4;//increase the signal to be on the same level as 16bits
+                    buf[i] = (sbyte)tmp[i];
                 }
             }
             else //16 bit data
             {
                 Marshal.Copy(pnt, buf, 0, (int)len);
-                rotate_180_s16(ref buf);
             }
 
             return r;
